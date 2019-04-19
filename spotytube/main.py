@@ -13,15 +13,15 @@ import requests_toolbelt.adapters.appengine
 requests_toolbelt.adapters.appengine.monkeypatch()
 
 # Identificador de la App en GAE
-gae_app_id = 'spotytube'
+gae_app_id = 'gae2019-23609'
 
 # La callBack URI debe estar definida en la App de DROPBOX
 # https://www.dropbox.com/developers/apps
 gae_callback_url = 'https://' + gae_app_id + '.appspot.com/oauth_callback'
 
 # Api key y Api secret en dropbox
-dropbox_app_key = '2q24sjqorfg66ek'
-dropbox_app_secret = 't19789pyf829yre'
+dropbox_app_key = '7uc91cpom2g50dn'
+dropbox_app_secret = '0ei57oawcjop1b3'
 
 
 # SESIONES

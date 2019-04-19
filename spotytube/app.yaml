@@ -1,4 +1,4 @@
-application: spotytube
+application: gae2019-23609
 version: 1
 runtime: python27
 api_version: 1
