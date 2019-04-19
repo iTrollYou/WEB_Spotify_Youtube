@@ -112,3 +112,5 @@ venv.bak/
 .idea/dictionaries
 .idea/libraries
 .idea/caches
+**/.idea/workspace.xml
+**/.idea/tasks.xml
