@@ -3,8 +3,8 @@ function AJAX() {
     var request = new XMLHttpRequest(); //Objeto AJAX para realizar la petición
 
     request.onreadystatechange = function () {
-        if (request.readyState == 4) { // XMLHttpReques status: 4 significado : request finished and response is ready
-            if (request.status == 200) { // estadorespuesta HTTP
+        if (request.readyState === 4) { // XMLHttpReques status: 4 significado : request finished and response is ready
+            if (request.status === 200) { // estadorespuesta HTTP
                 if (request.responseText != null) { // si la respuesta tiene contenido ....
                     var jsonObj = JSON.parse(request.responseText); // El contenido de la respuesta HTTP se recibe como(request.responseText)
                     // y convierte a JSON (JSON.parse())
