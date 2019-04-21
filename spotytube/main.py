@@ -1,6 +1,6 @@
 # coding=utf-8
 
-#!/usr/bin/env python
+# !/usr/bin/env python
 import hashlib
 import time
 
@@ -62,13 +62,17 @@ class MainHandler(BaseHandler):
         logging.debug('ENTERING MainHandler --->')
 
         oauth_token = self.session.get('oauth_token')
-        template_values = {'oauth_token': oauth_token}
 
+        if oauth_token is None:
+            # Si no hay token
+            self.redirect('/LoginAndAuthorize')
+
+        template_values = {'oauth_token': oauth_token}
         template = JINJA_ENVIRONMENT.get_template('index.html')
         self.response.write(template.render(template_values))
 
 
-#Spotify
+# Spotify
 class LoginAndAuthorizeHandler(BaseHandler):
     token_info = None
 
@@ -80,6 +84,8 @@ class LoginAndAuthorizeHandler(BaseHandler):
         token_info_json = json.dumps(token_info)
         # and store  values
         self.session['oauth_token'] = token_info_json
+        # volver a index
+        self.redirect('/')
 
     def _get_access_token(self):
         if self.token_info and not self.is_token_expired(self.token_info):
@@ -91,7 +97,8 @@ class LoginAndAuthorizeHandler(BaseHandler):
 
         return self.token_info['access_token']
 
-    def _request_token(self):
+    @staticmethod
+    def _request_token():
         authorization = base64.standard_b64encode(consumer_key + ':' + consumer_secret)
 
         headers = {'User-Agent': 'Google App Engine',
@@ -108,23 +115,23 @@ class LoginAndAuthorizeHandler(BaseHandler):
         return token_info
 
     def _add_custom_values_to_token_info(self, token_info):
-        print token_info
         token_info['expires_at'] = int(time.time()) + token_info['expires_in']
+        print token_info
         return token_info
 
     def is_token_expired(self, token_info):
         now = int(time.time())
         return token_info['expires_at'] - now < 60
 
-class LoginAndAuthorizeGoogleHandler(BaseHandler):
 
+class LoginAndAuthorizeGoogleHandler(BaseHandler):
     google_secret_key = "1FfMRgteyw6T8b46872U0dgb"
     client_id = "990115409802-q9o1n9f5hab5lrlg84l21u2si23m90ph.apps.googleusercontent.com"
 
     def get(self):
-        #Crear un token de estado anti-falsificación
+        # Crear un token de estado anti-falsificación
         state = self._create_state_token()
-        #Enviar una solicitud de autenticacion a google
+        # Enviar una solicitud de autenticacion a google
         self._authentication_request(state)
 
     def _create_state_token(self):
@@ -141,7 +148,7 @@ class LoginAndAuthorizeGoogleHandler(BaseHandler):
         return state
 
     def _authentication_request(self, state):
-        #redirect_uri = 'http://localhost:8080/oauth2callback' #Localhost
+        # redirect_uri = 'http://localhost:8080/oauth2callback' #Localhost
         redirect_uri = 'http://spotytube.appspot.com/oauth2callback'
 
         server = 'https://accounts.google.com/o/oauth2/v2/auth'
@@ -162,15 +169,14 @@ class LoginAndAuthorizeGoogleHandler(BaseHandler):
             print 'holi'
             print response.content
 
-
-
     def _generate_nonce(self):
         """Generate pseudorandom number."""
-        #return ''.join([str(random.randint(0, 9)) for i in range(length)])
+        # return ''.join([str(random.randint(0, 9)) for i in range(length)])
         num1 = [str(random.randint(0, 9)) for i in range(7)]
         num2 = [str(random.randint(0, 9)) for i in range(7)]
         num3 = [str(random.randint(0, 9)) for i in range(7)]
         return ''.join(num1) + '-' + ''.join(num2) + '-' + ''.join(num3)
+
 
 app = webapp2.WSGIApplication([
     ('/', MainHandler),
