@@ -82,7 +82,8 @@ class LoginAndAuthorizeHandler(BaseHandler):
 
         return self.token_info['access_token']
 
-    def _request_token(self):
+    @staticmethod
+    def _request_token():
         authorization = base64.standard_b64encode(consumer_key + ':' + consumer_secret)
 
         headers = {'User-Agent': 'Google App Engine',
