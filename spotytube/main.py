@@ -54,8 +54,12 @@ class MainHandler(BaseHandler):
         logging.debug('ENTERING MainHandler --->')
 
         oauth_token = self.session.get('oauth_token')
-        template_values = {'oauth_token': oauth_token}
 
+        if oauth_token is None:
+            # Si no hay token
+            self.redirect('/LoginAndAuthorize')
+
+        template_values = {'oauth_token': oauth_token}
         template = JINJA_ENVIRONMENT.get_template('index.html')
         self.response.write(template.render(template_values))
 
@@ -71,6 +75,8 @@ class LoginAndAuthorizeHandler(BaseHandler):
         token_info_json = json.dumps(token_info)
         # and store  values
         self.session['oauth_token'] = token_info_json
+        # volver a index
+        self.redirect('/')
 
     def _get_access_token(self):
         if self.token_info and not self.is_token_expired(self.token_info):
@@ -100,8 +106,8 @@ class LoginAndAuthorizeHandler(BaseHandler):
         return token_info
 
     def _add_custom_values_to_token_info(self, token_info):
-        print token_info
         token_info['expires_at'] = int(time.time()) + token_info['expires_in']
+        print token_info
         return token_info
 
     def is_token_expired(self, token_info):

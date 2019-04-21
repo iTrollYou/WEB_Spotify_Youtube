@@ -2,36 +2,46 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <title>SpotyTube</title>
     <link rel="stylesheet" href="/css/style.css" type="text/css"/>
     <script src='https://cdnjs.cloudflare.com/ajax/libs/jquery/2.2.2/jquery.min.js'></script>
-
     <script src="/js/javascript_header.js"></script>
+
+    <link href='https://fonts.googleapis.com/css?family=Raleway' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.1/css/all.css"
+          integrity="sha384-50oBUHEmvpQ+1lW4y57PTFmhCaXp0ML5d60M1M7uH2+nqUivzIebhndOJK28anvf" crossorigin="anonymous">
 </head>
+
+
 <body>
-<header>
-    <div class="wrapper">
-        <div class="logo">SpotyTube</div>
 
-        <nav>
-            <a href="">Login</a>
-        </nav>
+<div class="wrapper">
+    <div id="header">
+        <a href="">Login </a>
     </div>
-</header>
+    <div class="st-wrapper">
+        <h1 class='st-tittle'>SpotyTube</h1>
 
-<section class="content wrapper">
-    <h2>About Me</h2>
-    <p> oauth_token: {{ oauth_token}}</p>
-    <p>
-        PRUEBA PRUEBA PRUEBA PRUEBA PRUEBA PRUEBA PRUEBA PRUEBA PRUEBA PRUEBA PRUEBA PRUEBA PRUEBA PRUEBA PRUEBA PRUEBA
-        PRUEBA PRUEBA PRUEBA PRUEBA PRUEBA PRUEBA PRUEBA PRUEBA PRUEBA PRUEBA PRUEBA PRUEBA PRUEBA PRUEBA PRUEBA PRUEBA
-        PRUEBA PRUEBA PRUEBA PRUEBA PRUEBA PRUEBA PRUEBA PRUEBA PRUEBA PRUEBA PRUEBA PRUEBA PRUEBA PRUEBA PRUEBA PRUEBA
-        PRUEBA PRUEBA PRUEBA PRUEBA PRUEBA PRUEBA PRUEBA PRUEBA PRUEBA PRUEBA PRUEBA PRUEBA PRUEBA PRUEBA PRUEBA PRUEBA
-        PRUEBA PRUEBA PRUEBA PRUEBA PRUEBA PRUEBA
-    </p>
-</section>
+        <div class='pre-awesome-line'></div>
 
+        <section class="content wrapper">
+            <h2>Buscador</h2>
+            <p> oauth_token: {{ oauth_token}}</p>
 
+            <div class="box">
+                <div class="container-1">
+                    <span class="icon"><i class="fas fa-search"></i></span>
+                    <input type="search" id="search" placeholder="Search..."/>
+                </div>
+            </div>
+
+            <p>
+                PRUEBA PRUEBA PRUEBA PRUEBA PRUEBA PRUEBA PRUEBA PRUEBA PRUEBA PRUEBA PRUEBA PRUEBA PRUEBA PRUEBA PRUEBA
+
+            </p>
+        </section>
+    </div>
+</div>
 </body>
 </html>
 
