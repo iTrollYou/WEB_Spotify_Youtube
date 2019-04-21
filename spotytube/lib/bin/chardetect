@@ -1,4 +1,4 @@
-#!/home/paul/uni/tercero/Web/proyectos/WEB_Spotify_Youtube/spotytube/venv/bin/python2.7
+#!/usr/bin/python2
 # -*- coding: utf-8 -*-
 import re
 import sys
