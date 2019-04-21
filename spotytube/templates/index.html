@@ -20,11 +20,18 @@
 
 <script type="text/javascript">
     function onSignIn(googleUser) {
+        nocache = "nocache=" + Math.random() * 1000000; // Para evitar que el navegador guarde en memoría la respuesta HTTP
+        var request = new XMLHttpRequest(); //Objeto AJAX para realizar la petición
+
         var profile = googleUser.getBasicProfile();
         console.log('ID: ' + profile.getId()); // Do not send to your backend! Use an ID token instead.
         console.log('Name: ' + profile.getName());
         console.log('Image URL: ' + profile.getImageUrl());
         console.log('Email: ' + profile.getEmail()); // This is null if the 'email' scope is not present.
+        document.getElementById("email").innerHTML = profile.getEmail();
+
+        request.open("GET", "/LoginGoogle?email=" + profile.getEmail(), true); // preparar petición HTTP
+        request.send(null); // Enviar petición HTTP
     }
 
 </script>
@@ -36,11 +43,18 @@
     <div id="header">
 
         <a href="">Login </a>
-
+        <button onclick="myFunction()">Sign Out</button>
+        <script id="exit">
+            function myFunction() {
+                gapi.auth2.getAuthInstance().disconnect();
+                location.reload();
+            }
+        </script>
     </div>
     <div class="st-wrapper">
 
         <div class="g-signin2" data-onsuccess="onSignIn"></div>
+
         <h1 class='st-tittle'>SpotyTube</h1>
 
         <div class='pre-awesome-line'></div>
@@ -60,6 +74,8 @@
             <p>state: {{state}}</p>
             <p>client_id: {{client_id}}</p>
             <p>app_name: {{app_name}}</p>
+
+            <p id="email">None </p>
         </section>
     </div>
 </div>
