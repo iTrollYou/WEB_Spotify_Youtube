@@ -1,5 +1,7 @@
 #!/usr/bin/env python
+import sys
 
+import spotipy as spotipy
 from webapp2_extras import sessions
 import webapp2
 import jinja2
@@ -22,8 +24,8 @@ app_id = 'spotytube'
 callback_url = 'https://' + app_id + '.appspot.com/oauth_callback'
 
 # Consumer Api Keys Spotify
-consumer_key = '629b204e06304fb1822837dadd3f5732'
-consumer_secret = 'dcfefdac5f3d40f7869805122d151c70'
+consumer_key = 'e5c792dbc36a4ec8a06e0bd91ef111eb'
+consumer_secret = 'a6864aaefd234446b7ad8c5819051da1'
 
 JINJA_ENVIRONMENT = jinja2.Environment(
     loader=jinja2.FileSystemLoader(os.path.join(os.path.dirname(__file__), 'templates')),
@@ -60,7 +62,7 @@ class MainHandler(BaseHandler):
 
         template = JINJA_ENVIRONMENT.get_template('jinja2_template.html')
         self.response.write(template.render(template_values))
-
+        
 
 class LoginAndAuthorizeHandler(BaseHandler):
     def get(self):
