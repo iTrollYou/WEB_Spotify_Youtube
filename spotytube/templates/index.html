@@ -2,12 +2,27 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <title>Spotytube</title>
     <link rel="stylesheet" href="/css/style.css" type="text/css"/>
     <script src='https://cdnjs.cloudflare.com/ajax/libs/jquery/2.2.2/jquery.min.js'></script>
-
     <script src="/js/javascript_header.js"></script>
+
+    <script src="https://apis.google.com/js/platform.js" async defer></script>
+    <meta name="google-signin-client_id" content="990115409802-q9o1n9f5hab5lrlg84l21u2si23m90ph.apps.googleusercontent.com">
+
 </head>
+
+<script type="text/javascript">
+    function onSignIn(googleUser) {
+        var profile = googleUser.getBasicProfile();
+        console.log('ID: ' + profile.getId()); // Do not send to your backend! Use an ID token instead.
+        console.log('Name: ' + profile.getName());
+        console.log('Image URL: ' + profile.getImageUrl());
+        console.log('Email: ' + profile.getEmail()); // This is null if the 'email' scope is not present.
+    }
+
+</script>
+
 <body>
 <header>
     <div class="wrapper">
@@ -15,6 +30,7 @@
 
         <nav>
             <a href="">Login</a>
+            <div class="g-signin2" data-onsuccess="onSignIn"></div>
         </nav>
     </div>
 </header>
@@ -29,6 +45,10 @@
         PRUEBA PRUEBA PRUEBA PRUEBA PRUEBA PRUEBA PRUEBA PRUEBA PRUEBA PRUEBA PRUEBA PRUEBA PRUEBA PRUEBA PRUEBA PRUEBA
         PRUEBA PRUEBA PRUEBA PRUEBA PRUEBA PRUEBA
     </p>
+    <p></p>
+    <p>state: {{state}}</p>
+    <p>client_id: {{client_id}}</p>
+    <p>app_name: {{app_name}}</p>
 </section>
 
 

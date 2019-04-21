@@ -1,4 +1,7 @@
+# coding=utf-8
+
 #!/usr/bin/env python
+import hashlib
 import time
 
 import logging
@@ -6,6 +9,11 @@ import os
 
 import base64
 import json
+
+import random
+import urllib
+import webbrowser
+
 from webapp2_extras import sessions
 import webapp2
 import jinja2
@@ -60,6 +68,7 @@ class MainHandler(BaseHandler):
         self.response.write(template.render(template_values))
 
 
+#Spotify
 class LoginAndAuthorizeHandler(BaseHandler):
     token_info = None
 
@@ -107,9 +116,65 @@ class LoginAndAuthorizeHandler(BaseHandler):
         now = int(time.time())
         return token_info['expires_at'] - now < 60
 
+class LoginAndAuthorizeGoogleHandler(BaseHandler):
+
+    google_secret_key = "1FfMRgteyw6T8b46872U0dgb"
+    client_id = "990115409802-q9o1n9f5hab5lrlg84l21u2si23m90ph.apps.googleusercontent.com"
+
+    def get(self):
+        #Crear un token de estado anti-falsificación
+        state = self._create_state_token()
+        #Enviar una solicitud de autenticacion a google
+        self._authentication_request(state)
+
+    def _create_state_token(self):
+        # Create a state token to prevent request forgery.
+        # Store it in the session for later validation.
+        state = hashlib.sha256(os.urandom(1024)).hexdigest()
+        # Set the client ID, token state, and application name in the HTML while
+        # serving it.
+        template_values = {'state': state,
+                           'client_id': self.client_id,
+                           'app_name': app_id}
+        template = JINJA_ENVIRONMENT.get_template('index.html')
+        self.response.write(template.render(template_values))
+        return state
+
+    def _authentication_request(self, state):
+        #redirect_uri = 'http://localhost:8080/oauth2callback' #Localhost
+        redirect_uri = 'http://spotytube.appspot.com/oauth2callback'
+
+        server = 'https://accounts.google.com/o/oauth2/v2/auth'
+
+        params = {'client_id': self.client_id,
+                  'response_type': 'code',
+                  'scope': 'openid  andrea98.gar@gmail.com',
+                  'nonce': self._generate_nonce(),
+                  'redirect_uri': redirect_uri,
+                  'state': state}
+        headers = {'User-Agent': 'Python Client'}
+
+        params_encoded = urllib.urlencode(params)
+
+        response = requests.get(server, headers=headers, params=params_encoded)
+
+        if response.status_code == 200:
+            print 'holi'
+            print response.content
+
+
+
+    def _generate_nonce(self):
+        """Generate pseudorandom number."""
+        #return ''.join([str(random.randint(0, 9)) for i in range(length)])
+        num1 = [str(random.randint(0, 9)) for i in range(7)]
+        num2 = [str(random.randint(0, 9)) for i in range(7)]
+        num3 = [str(random.randint(0, 9)) for i in range(7)]
+        return ''.join(num1) + '-' + ''.join(num2) + '-' + ''.join(num3)
 
 app = webapp2.WSGIApplication([
     ('/', MainHandler),
-    ('/LoginAndAuthorize', LoginAndAuthorizeHandler)
+    ('/LoginAndAuthorize', LoginAndAuthorizeHandler),
+    ('/LoginGoogle', LoginAndAuthorizeGoogleHandler)
 
 ], config=config, debug=True)
