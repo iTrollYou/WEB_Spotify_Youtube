@@ -1,18 +1,14 @@
 #!/usr/bin/env python
-import sys
+import time
 
-import spotipy as spotipy
+import logging
+import os
+
+import base64
+import json
 from webapp2_extras import sessions
 import webapp2
 import jinja2
-import os
-import logging
-import urllib
-import random
-import time
-import hmac
-import binascii
-import hashlib
 
 import requests
 import requests_toolbelt.adapters.appengine
@@ -25,7 +21,7 @@ callback_url = 'https://' + app_id + '.appspot.com/oauth_callback'
 
 # Consumer Api Keys Spotify
 consumer_key = 'e5c792dbc36a4ec8a06e0bd91ef111eb'
-consumer_secret = 'a6864aaefd234446b7ad8c5819051da1'
+consumer_secret = '2e88aa2d92df480fb624202f7dd3adf6'
 
 JINJA_ENVIRONMENT = jinja2.Environment(
     loader=jinja2.FileSystemLoader(os.path.join(os.path.dirname(__file__), 'templates')),
@@ -50,191 +46,70 @@ class BaseHandler(webapp2.RequestHandler):
         return self.session_store.get_session()
 
 
-config = {}
-config['webapp2_extras.sessions'] = {'secret_key': 'my-super-secret-key'}
+config = {'webapp2_extras.sessions': {'secret_key': 'my-super-secret-key'}}
 
 
 class MainHandler(BaseHandler):
     def get(self):
         logging.debug('ENTERING MainHandler --->')
-        twitter_user = self.session.get('twitter_user')
-        template_values = {'twitter_user': twitter_user}
 
-        template = JINJA_ENVIRONMENT.get_template('jinja2_template.html')
+        oauth_token = self.session.get('oauth_token')
+        template_values = {'oauth_token': oauth_token}
+
+        template = JINJA_ENVIRONMENT.get_template('index.html')
         self.response.write(template.render(template_values))
-        
+
 
 class LoginAndAuthorizeHandler(BaseHandler):
+    token_info = None
+
     def get(self):
         logging.debug('ENTERING LoginAndAuthorizeHandler --->')
 
         # Step 1: Obtaining a request token
-        method = 'POST'
-        url = 'https://api.twitter.com/oauth/request_token'
-        oauth_headers = {'oauth_callback': callback_url}
-        logging.debug(callback_url)
+        token_info = self._get_access_token()
+        token_info_json = json.dumps(token_info)
+        # and store  values
+        self.session['oauth_token'] = token_info_json
 
-        cabeceras = {'User-Agent': 'Oskarren Google App Engine',
-                     'Authorization': createAuthHeader(method, url, oauth_headers, None, None)}
-        respuesta = requests.post(url, headers=cabeceras)
-        cuerpo = respuesta.text
+    def _get_access_token(self):
+        if self.token_info and not self.is_token_expired(self.token_info):
+            return self.token_info['access_token']
 
-        # Your application should examine the HTTP status of the response.
-        # Any value other than 200 indicates a failure.
-        if respuesta.status_code != '200':
-            logging.debug('/oauth/request_token != 200')
+        token_info = self._request_token()
+        token_info = self._add_custom_values_to_token_info(token_info)
+        self.token_info = token_info
 
-        # Your application should verify that oauth_callback_confirmed is true
-        oauth_callback_confirmed = cuerpo.split('&')[2].replace('oauth_callback_confirmed=', '')
-        if oauth_callback_confirmed != 'true':
-            logging.debug('oauth_callback_confirmed != true')
+        return self.token_info['access_token']
 
-        # and store the other two values
-        self.session['oauth_token'] = cuerpo.split('&')[0].replace('oauth_token=', '')
-        self.session['oauth_token_secret'] = cuerpo.split('&')[1].replace('oauth_token_secret=', '')
+    def _request_token(self):
+        authorization = base64.standard_b64encode(consumer_key + ':' + consumer_secret)
 
-        # Step 2: Redirecting the user
+        headers = {'User-Agent': 'Google App Engine',
+                   'Authorization': 'Basic {0}'.format(authorization)}
+        data = {'grant_type': 'client_credentials'}
 
-        uri = "https://api.twitter.com/oauth/authenticate"
-        params = {'oauth_token': self.session.get('oauth_token')}
-        params_encoded = urllib.urlencode(params)
-        self.redirect(uri + '?' + params_encoded)
+        oauth_token_url = 'https://accounts.spotify.com/api/token'
 
+        response = requests.post(oauth_token_url, headers=headers, data=data)
 
-class OAuthCallbackHandler(BaseHandler):
-    def get(self):
-        logging.debug('ENTERING OAuthCallbackHandler --->')
+        if response.status_code != 200:
+            print response.reason
+        token_info = response.json()
+        return token_info
 
-        oauth_token = self.request.get("oauth_token")
-        oauth_verifier = self.request.get("oauth_verifier")
+    def _add_custom_values_to_token_info(self, token_info):
+        print token_info
+        token_info['expires_at'] = int(time.time()) + token_info['expires_in']
+        return token_info
 
-        # Your application should verify that the token matches the request token received in step 1
-        if oauth_token != self.session.get('oauth_token'):
-            logging.debug('step2_oauth_token != step1_oauth_token')
-
-        # Step 3: Converting the request token to an access token
-        method = 'POST'
-        url = 'https://api.twitter.com/oauth/access_token'
-        oauth_headers = {'oauth_token': oauth_token}
-        params = {'oauth_verifier': oauth_verifier}
-
-        cabeceras = {'User-Agent': 'Google App Engine',
-                     'Content-Type': 'application/x-www-form-urlencoded',
-                     'Authorization': createAuthHeader(method, url, oauth_headers, params,
-                                                       self.session.get('oauth_token_secret'))}
-        respuesta = requests.post(url, headers=cabeceras, data=params)
-        cuerpo = respuesta.text
-
-        self.session['oauth_token'] = cuerpo.split('&')[0].replace('oauth_token=', '')
-        self.session['oauth_token_secret'] = cuerpo.split('&')[1].replace('oauth_token_secret=', '')
-        self.session['user_id'] = cuerpo.split('&')[2].replace('user_id=', '')
-        self.session['twitter_user'] = cuerpo.split('&')[3].replace('screen_name=', '')
-
-        self.redirect('/')
-
-
-class RefreshLast3TweetsHandler(BaseHandler):
-    def get(self):
-        logging.debug('ENTERING RefreshLast3Tweets --->')
-        oauth_token = self.session['oauth_token']
-        oauth_token_secret = self.session['oauth_token_secret']
-
-        method = 'GET'
-        base_url = 'https://api.twitter.com/1.1/statuses/home_timeline.json'
-        oauth_headers = {'oauth_token': oauth_token}
-        params = {'count': '3'}
-        cabeceras = {'User-Agent': 'Google App Engine',
-                     'Authorization': createAuthHeader(method, base_url, oauth_headers, params, oauth_token_secret)}
-        params_encoded = urllib.urlencode(params)
-        uri = base_url + '?' + params_encoded
-        respuesta = requests.get(uri, headers=cabeceras)
-
-        self.response.headers['Content-Type'] = 'application/json'
-        self.response.write(respuesta.text)
-
-
-class PublishTweetHandler(BaseHandler):
-    def get(self):
-        logging.debug('ENTERING PublishTweet --->')
-        oauth_token = self.session['oauth_token']
-        oauth_token_secret = self.session['oauth_token_secret']
-
-        estatus = self.request.get("tweet")
-
-        method = 'POST'
-        base_url = 'https://api.twitter.com/1.1/statuses/update.json'
-        oauth_headers = {'oauth_token': oauth_token}
-        params = {'status': estatus}
-        cabeceras = {'User-Agent': 'Google App Engine',
-                     'Content-Type': 'application/x-www-form-urlencoded',
-                     'Authorization': createAuthHeader(method, base_url, oauth_headers, params, oauth_token_secret)}
-        respuesta = requests.post(base_url, headers=cabeceras, data=params)
-        logging.info(respuesta.text)
-
-        self.redirect("/")
-
-
-def createAuthHeader(method, base_url, oauth_headers, request_params, oauth_token_secret):
-    logging.debug('ENTERING createAuthHeader --->')
-    oauth_headers.update({'oauth_consumer_key': consumer_key,
-                          'oauth_nonce': str(random.randint(0, 999999999)),
-                          'oauth_signature_method': "HMAC-SHA1",
-                          'oauth_timestamp': str(int(time.time())),
-                          'oauth_version': "1.0"})
-    oauth_headers['oauth_signature'] = \
-        urllib.quote(createRequestSignature(method, base_url, oauth_headers, request_params, oauth_token_secret), "")
-
-    if oauth_headers.has_key('oauth_callback'):
-        oauth_headers['oauth_callback'] = urllib.quote_plus(oauth_headers['oauth_callback'])
-    authorization_header = "OAuth "
-    for each in sorted(oauth_headers.keys()):
-        if each == sorted(oauth_headers.keys())[-1]:
-            authorization_header = authorization_header \
-                                   + each + "=" + "\"" \
-                                   + oauth_headers[each] + "\""
-        else:
-            authorization_header = authorization_header \
-                                   + each + "=" + "\"" \
-                                   + oauth_headers[each] + "\"" + ", "
-
-    return authorization_header
-
-
-def createRequestSignature(method, base_url, oauth_headers, request_params, oauth_token_secret):
-    logging.debug('ENTERING createRequestSignature --->')
-    encoded_params = ''
-    params = {}
-    params.update(oauth_headers)
-    if request_params:
-        params.update(request_params)
-    for each in sorted(params.keys()):
-        key = urllib.quote(each, "")
-        value = urllib.quote(params[each], "")
-        if each == sorted(params.keys())[-1]:
-            encoded_params = encoded_params + key + "=" + value
-        else:
-            encoded_params = encoded_params + key + "=" + value + "&"
-
-    signature_base = method.upper() + \
-                     "&" + urllib.quote(base_url, "") + \
-                     "&" + urllib.quote(encoded_params, "")
-
-    if oauth_token_secret == None:
-        signing_key = urllib.quote(consumer_secret, "") + "&"
-    else:
-        signing_key = urllib.quote(consumer_secret, "") + "&" + urllib.quote(oauth_token_secret, "")
-
-    hashed = hmac.new(signing_key, signature_base, hashlib.sha1)
-    oauth_signature = binascii.b2a_base64(hashed.digest())
-
-    return oauth_signature[:-1]
+    def is_token_expired(self, token_info):
+        now = int(time.time())
+        return token_info['expires_at'] - now < 60
 
 
 app = webapp2.WSGIApplication([
     ('/', MainHandler),
-    ('/LoginAndAuthorize', LoginAndAuthorizeHandler),
-    ('/oauth_callback', OAuthCallbackHandler),
-    ('/RefreshLast3Tweets', RefreshLast3TweetsHandler),
-    ('/publishTweet', PublishTweetHandler)
+    ('/LoginAndAuthorize', LoginAndAuthorizeHandler)
 
 ], config=config, debug=True)
