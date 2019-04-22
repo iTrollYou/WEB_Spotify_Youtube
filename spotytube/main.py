@@ -140,25 +140,16 @@ class LoginAndAuthorizeGoogleHandler(BaseHandler):
 
     def get(self):
         # Enviar una solicitud de autenticacion a google
-        self._authentication_request()
-        # Verify token
-        # secretjson = self._verify_token(token)
-
-    def _verify_token(self, token):
-        params = {'id_token': token}
-        response = requests.get("https://oauth2.googleapis.com/tokeninfo?", params=params)
-        return response.content
-
-    def _authentication_request(self):
         redirect_uri = 'http://localhost:8080/oauth2callback'  # Localhost
         # redirect_uri = 'http://spotytube.appspot.com/oauth2callback'
 
         server = 'https://accounts.google.com/o/oauth2/v2/auth'
 
-        params = {'client_id': self.client_id,
+        params = {'client_id': client_id,
                   'response_type': 'code',
                   'scope': 'https://www.googleapis.com/auth/youtube',
-                  'redirect_uri': redirect_uri}
+                  'redirect_uri': redirect_uri,
+                  'access_type': 'offline'}
 
         headers = {'User-Agent': 'Google App Engine'}
 
@@ -167,6 +158,7 @@ class LoginAndAuthorizeGoogleHandler(BaseHandler):
         response = requests.get(server, headers=headers, params=params_encoded)
         if response.status_code == 200:
             self.redirect(str(response.url))
+
 
 
 class SearchSpotify(BaseHandler):
@@ -205,7 +197,6 @@ class OauthCallBackHandler(BaseHandler):
         code = self.request.get('code')
 
         # Get token
-
         redirect_uri = 'http://localhost:8080/oauth2callback'  # Localhost
 
         headers = {
@@ -220,7 +211,15 @@ class OauthCallBackHandler(BaseHandler):
         }
         response = requests.post("https://www.googleapis.com/oauth2/v4/token", headers=headers, data=data)
 
+        json_respuesta = json.loads(response.content)
+        access_token = json_respuesta['access_token']
         print response.content
+
+        self.session['yt_token'] = access_token
+
+        
+
+
 
 
 app = webapp2.WSGIApplication([
