@@ -223,11 +223,14 @@ class YoutubePlaylist(BaseHandler):
 
         headers = {'Authorization': 'Bearer {0}'.format(self.session['yt_token']),
                    'Accept': 'application/json',
-                   'Content-Type': 'application/json',
-                   'User-Agent': 'Google App Engine'}
+                   'Content-Type': 'application/json'}
+
+        params = {'part': 'snippet'}
+        params_encoded = urllib.urlencode(params)
 
         data = {'snippet': {'title': 'ozuna'}}
-        response = requests.post('https://www.googleapis.com/youtube/v3/playlists', headers=headers, data=data)
+        jsondata = json.dumps(data)
+        response = requests.post('https://www.googleapis.com/youtube/v3/playlists?'+params_encoded, headers=headers, data=jsondata)
         print response.content
 
         def _buscar_cancion_(self):
