@@ -137,7 +137,6 @@ class LoginAndAuthorizeHandler(BaseHandler):
 
 class LoginAndAuthorizeGoogleHandler(BaseHandler):
 
-
     def get(self):
         # Enviar una solicitud de autenticacion a google
         redirect_uri = 'http://localhost:8080/oauth2callback'  # Localhost
@@ -158,7 +157,6 @@ class LoginAndAuthorizeGoogleHandler(BaseHandler):
         response = requests.get(server, headers=headers, params=params_encoded)
         if response.status_code == 200:
             self.redirect(str(response.url))
-
 
 
 class SearchSpotify(BaseHandler):
@@ -212,13 +210,12 @@ class OauthCallBackHandler(BaseHandler):
         response = requests.post("https://www.googleapis.com/oauth2/v4/token", headers=headers, data=data)
 
         json_respuesta = json.loads(response.content)
+        print json_respuesta
         access_token = json_respuesta['access_token']
-        #print response.content
+        # print response.content
 
         self.session['yt_token'] = access_token
         self.redirect('/')
-
-
 
 
 app = webapp2.WSGIApplication([
