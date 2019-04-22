@@ -1,7 +1,7 @@
 # coding=utf-8
 
 # !/usr/bin/env python
-import hashlib
+
 import time
 
 import logging
@@ -9,10 +9,10 @@ import os
 
 import base64
 import json
+import pprint
+import re
 
-import random
 import urllib
-import webbrowser
 
 from webapp2_extras import sessions
 import webapp2
@@ -20,10 +20,6 @@ import jinja2
 
 import requests
 import requests_toolbelt.adapters.appengine
-
-from requests import api
-
-_session = api
 
 # Use the App Engine Requests adapter. This makes sure that Requests uses URLFetch.
 requests_toolbelt.adapters.appengine.monkeypatch()
@@ -56,6 +52,31 @@ class BaseHandler(webapp2.RequestHandler):
             # Save all sessions.
             self.session_store.save_sessions(self.response)
 
+        template_values = {'image1': self.session.get('image1'),
+                           'image2': self.session.get('image2'),
+                           'image3': self.session.get('image3'),
+                           'image4': self.session.get('image4'),
+                           'image5': self.session.get('image5'),
+                           'image6': self.session.get('image6'),
+                           'image7': self.session.get('image7'),
+                           'image8': self.session.get('image8'),
+                           'image9': self.session.get('image9'),
+                           'imageText1': self.session.get('imageText1'),
+                           'imageText2': self.session.get('imageText2'),
+                           'imageText3': self.session.get('imageText3'),
+                           'imageText4': self.session.get('imageText4'),
+                           'imageText5': self.session.get('imageText5'),
+                           'imageText6': self.session.get('imageText6'),
+                           'imageText7': self.session.get('imageText7'),
+                           'imageText8': self.session.get('imageText8'),
+                           'imageText9': self.session.get('imageText9'),
+
+                           }
+        pprint.pprint(template_values)
+
+        template = JINJA_ENVIRONMENT.get_template('index.html')
+        self.response.write(template.render(template_values))
+
     @webapp2.cached_property
     def session(self):
         # Returns a session using the default cookie key.
@@ -78,10 +99,6 @@ class MainHandler(BaseHandler):
             # Si no hay token
             self.redirect('/LoginAndAuthorize')
 
-        template_values = {'oauth_token': oauth_token}
-        template = JINJA_ENVIRONMENT.get_template('index.html')
-        self.response.write(template.render(template_values))
-
 
 # Spotify
 class LoginAndAuthorizeHandler(BaseHandler):
@@ -96,6 +113,7 @@ class LoginAndAuthorizeHandler(BaseHandler):
 
         # and store  values
         self.session['oauth_token'] = str(token_info_json).replace('"', '')
+        print str(token_info_json).replace('"', '')
         # volver a index
         self.redirect('/')
 
@@ -135,6 +153,59 @@ class LoginAndAuthorizeHandler(BaseHandler):
         return token_info['expires_at'] - now < 60
 
 
+class SearchSpotify(BaseHandler):
+    def get(self):
+        logging.debug('ENTERING SearchSpotify --->')
+        self.oauth_token = self.session['oauth_token']
+
+        to_search = self.request.get("search")
+        result = self.search_playlist_uri(to_search)
+        self.print_images(result)
+        self.redirect('/')
+        # id del artista
+        # print (result['tracks']['items'][0]['artists'][0]['id'])
+
+    def _request(self, url, data):
+        data = dict(params=data)
+        if not url.startswith('http'):
+            url = prefix + url
+        headers = {'Authorization': 'Bearer {0}'.format(self.oauth_token), 'Content-Type': 'application/json'}
+
+        respuesta = requests.get(url, headers=headers, **data)
+        if respuesta.text and len(respuesta.text) > 0 and respuesta.text != 'null':
+            results = respuesta.json()
+            print()
+            return results
+        else:
+            return None
+
+    def _get(self, url, **kwargs):
+        return self._request(url, kwargs)
+
+    def search(self, q, limit=10, offset=0, type='track', market=None):
+        return self._get('search', q=q, limit=limit, offset=offset, type=type, market=market)
+
+    def search_playlist_uri(self, playlist):
+        items = self.search(q='playlist:' + playlist, type='playlist', limit=20)['playlists']['items']
+        if len(items) > 0:
+            return items
+
+    def print_images(self, result):
+        for x in range(0, 8, 1):
+            # print (result[x]['images'][0]['url'])
+            image = 'image' + str(x + 1)
+            imageText = 'imageText' + str(x + 1)
+            self.session[imageText] = re.sub(r'[^\x00-\x7F]+', ' ', result[x]['name'])
+            # print self.session[imageText]
+            self.session[image] = result[x]['images'][0]['url']
+            print self.session[imageText]
+        print 'image debe cambiar'
+        # image = {'image': result[0]['images'][0]['url']}
+
+        # template = JINJA_ENVIRONMENT.get_template('index.html')
+        # self.response.write(template.render(template_values))
+
+
 class LoginAndAuthorizeGoogleHandler(BaseHandler):
 
     def get(self):
@@ -157,36 +228,6 @@ class LoginAndAuthorizeGoogleHandler(BaseHandler):
         response = requests.get(server, headers=headers, params=params_encoded)
         if response.status_code == 200:
             self.redirect(str(response.url))
-
-
-class SearchSpotify(BaseHandler):
-    def get(self):
-        logging.debug('ENTERING SearchSpotify --->')
-        self.oauth_token = self.session['oauth_token']
-
-        to_search = self.request.get("search")
-        result = self.search(to_search)
-        # id del artista
-        print (result['tracks']['items'][0]['artists'][0]['id'])
-
-    def _request(self, url, data):
-        if not url.startswith('http'):
-            url = prefix + url
-        headers = {'Authorization': 'Bearer {0}'.format(self.oauth_token), 'Content-Type': 'application/json'}
-
-        respuesta = requests.get(url, headers=headers, **data)
-        if respuesta.text and len(respuesta.text) > 0 and respuesta.text != 'null':
-            results = respuesta.json()
-            print()
-            return results
-        else:
-            return None
-
-    def _get(self, url, **kwargs):
-        return self._request(url, kwargs)
-
-    def search(self, query, limit=10, offset=0, type='track', market=None):
-        return self._get('search', q=query, limit=limit, offset=offset, type=type, market=market)
 
 
 class OauthCallBackHandler(BaseHandler):

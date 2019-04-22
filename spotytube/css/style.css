@@ -4,7 +4,7 @@
 }
 
 body {
-    font-family: 'Montserrat', sans-serif;
+    font-family: 'Montserrat', "Noto Sans Tibetan";
     background-color: #131313;
     color: white;
     overflow-y: scroll;
@@ -84,22 +84,22 @@ body {
     text-align: center;
     margin: 30px auto;
     height: 1px;
-    background: -webkit-gradient(linear, left top, right top, color-stop(25%, #393939), color-stop(50%, #ff5a09), color-stop(75%, #393939));
+    background: -webkit-gradient(linear, left top, right top, color-stop(25%, #29a850), color-stop(50%, #f1b95f), color-stop(75%, #f50000));
     /* Chrome,Safari4+ */
 
-    background: -moz-linear-gradient(left, #393939 25%, #ff5a09 50%, #393939 75%);
+    background: -moz-linear-gradient(left, #29a850 25%, #f1b95f 50%, #f50000 75%);
     /* FF3.6+ */
 
-    background: -webkit-linear-gradient(left, #1e5799 25%, #69dd2a 50%, #207cca 75%);
+    background: -webkit-linear-gradient(left, #29a850 25%, #f1b95f 50%, #f50000 75%);
     /* Chrome10+,Safari5.1+ */
 
-    background: -o-linear-gradient(left, #393939 25%, #ff5a09 50%, #393939 75%);
+    background: -o-linear-gradient(left, #29a850 25%, #f1b95f 50%, #f50000 75%);
     /* Opera 11.10+ */
 
-    background: -ms-linear-gradient(left, #393939 25%, #ff5a09 50%, #393939 75%);
+    background: -ms-linear-gradient(left, #29a850 25%, #f1b95f 50%, #f50000 75%);
     /* IE10+ */
 
-    background: linear-gradient(to right, #393939 25%, #ff5a09 50%, #393939 75%);
+    background: linear-gradient(to right, #29a850 25%, #f1b95f 50%, #f50000 75%);
     /* W3C */
 }
 
@@ -116,3 +116,59 @@ body {
     color: #f3843e;
 }
 
+/* Three columns side by side */
+.column {
+    float: left;
+    width: 30%;
+    margin-bottom: 16px;
+    padding: 0 8px;
+}
+
+/* Display the columns below each other instead of side by side on small screens */
+@media screen and (max-width: 650px) {
+    .column {
+        width: 100%;
+        display: block;
+    }
+}
+
+/* Add some shadows to create a card effect */
+.card {
+    box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
+}
+
+/* Some left and right padding inside the container */
+.container {
+    padding: 0 16px;
+}
+
+/* Clear floats */
+.container::after, .row::after {
+    content: "";
+    clear: both;
+    display: table;
+}
+
+.title {
+    color: grey;
+}
+
+.button {
+    border: none;
+    outline: 0;
+    display: inline-block;
+    padding: 8px;
+    color: white;
+    background-color: #000;
+    text-align: center;
+    cursor: pointer;
+    width: 100%;
+}
+
+.button:hover {
+    background-color: #555;
+}
+
+img {
+    border-radius: 50%;
+}

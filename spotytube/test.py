@@ -16,7 +16,6 @@ def _request(url, data):
     respuesta = requests.get(url, headers=headers, **data)
     if respuesta.text and len(respuesta.text) > 0 and respuesta.text != 'null':
         results = respuesta.json()
-        print()
         return results
     else:
         return None
@@ -27,7 +26,7 @@ def _get(url, **kwargs):
 
 
 def search(query, limit=10, offset=0, type='track', market=None):
-    return _get('search', q=query, limit=limit, offset=offset, type=type, market=market)
+    return _get('search', query=query, limit=limit, offset=offset, type=type, market=market)
 
 
 def _get_id(type, id):
@@ -92,10 +91,10 @@ data = {'grant_type': 'client_credentials'}
 s = requests.Session()
 
 respuesta = s.post(OAUTH_TOKEN_URL, headers=headers, data=data)
-print respuesta.status_code
+# print respuesta.status_code
 
 json_respuesta = json.loads(respuesta.content)
-print json_respuesta
+# print json_respuesta
 access_token = json_respuesta['access_token']
 
 #######################################################
@@ -103,6 +102,9 @@ access_token = json_respuesta['access_token']
 
 playlist = 'https://open.spotify.com/playlist/37i9dQZF1DWXCGnD7W6WDX'
 
-get_tracks_from_playlist(playlist)
+# get_tracks_from_playlist(playlist)
+result = search_playlist_uri('Ozuna')
 
-pprint.pprint(search_playlist_uri('Ozuna'))
+for x in range(0, len(result), 1):
+    print (result[x]['name'].encode('utf-8').strip())
+
