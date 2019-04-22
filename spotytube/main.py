@@ -136,39 +136,16 @@ class LoginAndAuthorizeGoogleHandler(BaseHandler):
     client_id = "990115409802-q9o1n9f5hab5lrlg84l21u2si23m90ph.apps.googleusercontent.com"
 
     def get(self):
-        token = self.request.get("token")
-        email = self.request.get("email")
-
-        #Verify token
-        secretjson = self._verify_token(token)
-
-        #Get code for access token
-
-
-        #print id_token.content
-        # Crear un token de estado anti-falsificación
-        state = self._create_state_token()
         # Enviar una solicitud de autenticacion a google
         self._authentication_request()
+        # Verify token
+        # secretjson = self._verify_token(token)
+
 
     def _verify_token(self, token):
         params = {'id_token': token}
         response = requests.get("https://oauth2.googleapis.com/tokeninfo?", params=params)
         return response.content
-
-    def _create_state_token(self):
-        # Create a state token to prevent request forgery.
-        # Store it in the session for later validation.
-        state = hashlib.sha256(os.urandom(1024)).hexdigest()
-        # Set the client ID, token state, and application name in the HTML while
-        # serving it.
-        template_values = {'state': state,
-                           'client_id': self.client_id,
-                           'app_name': app_id}
-
-        template = JINJA_ENVIRONMENT.get_template('index.html')
-        self.response.write(template.render(template_values))
-        return state
 
     def _authentication_request(self):
         redirect_uri = 'http://localhost:8080/oauth2callback' #Localhost
