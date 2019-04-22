@@ -35,10 +35,6 @@ callback_url = 'https://' + app_id + '.appspot.com/oauth_callback'
 consumer_key = 'cb169bdfb3884a03ba9c68932f87285b'
 consumer_secret = '5ad8b30856c64e569685769261fa2689'
 
-# Google keys
-google_secret_key = "1FfMRgteyw6T8b46872U0dgb"
-client_id = "990115409802-q9o1n9f5hab5lrlg84l21u2si23m90ph.apps.googleusercontent.com"
-
 JINJA_ENVIRONMENT = jinja2.Environment(
     loader=jinja2.FileSystemLoader(os.path.join(os.path.dirname(__file__), 'templates')),
     extensions=['jinja2.ext.autoescape'],
@@ -136,7 +132,8 @@ class LoginAndAuthorizeHandler(BaseHandler):
 
 
 class LoginAndAuthorizeGoogleHandler(BaseHandler):
-
+    google_secret_key = "1FfMRgteyw6T8b46872U0dgb"
+    client_id = "990115409802-q9o1n9f5hab5lrlg84l21u2si23m90ph.apps.googleusercontent.com"
 
     def get(self):
         # Enviar una solicitud de autenticacion a google
@@ -156,7 +153,7 @@ class LoginAndAuthorizeGoogleHandler(BaseHandler):
 
         server = 'https://accounts.google.com/o/oauth2/v2/auth'
 
-        params = {'client_id': client_id,
+        params = {'client_id': self.client_id,
                   'response_type': 'code',
                   'scope': 'https://www.googleapis.com/auth/youtube',
                   'redirect_uri': redirect_uri}
@@ -204,22 +201,13 @@ class OauthCallBackHandler(BaseHandler):
     def get(self):
         # Get code
         code = self.request.get('code')
-        print code
 
         # Get token
-        redirect_uri = 'http://localhost:8080/oauth2callback' #Localhost
-
         headers={'Content-Type': 'application/x-www-form-urlencoded',
-                 'User-Agent': 'Google App Engine',
-                 'code': code,
-                 'redirect_uri': redirect_uri,
-                 'client_id': client_id,
-                 'client_secret': google_secret_key,
-                 'grant_type': 'Authorization_code'}
+                 'User-Agent': 'Google App Engine'}
+        response = requests.post("www.googleapis.com/oauth2/v4/token")
 
-        response = requests.post("https://googleapis.com/oauth2/v4/token", headers=headers)
-
-        print response.content
+        print code
 
 app = webapp2.WSGIApplication([
     ('/', MainHandler),
