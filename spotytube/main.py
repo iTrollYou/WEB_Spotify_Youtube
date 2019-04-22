@@ -194,13 +194,12 @@ class SearchSpotify(BaseHandler):
         # id del artista
         print (result['tracks']['items'][0]['artists'][0]['id'])
 
-    def _request(self, method, url, data):
-        data = dict(params=data)
+    def _request(self, url, data):
         if not url.startswith('http'):
             url = prefix + url
         headers = {'Authorization': 'Bearer {0}'.format(self.oauth_token), 'Content-Type': 'application/json'}
 
-        respuesta = _session.request(method, url, headers=headers, **data)
+        respuesta = requests.get(url, headers=headers, **data)
         if respuesta.text and len(respuesta.text) > 0 and respuesta.text != 'null':
             results = respuesta.json()
             print()
@@ -209,7 +208,7 @@ class SearchSpotify(BaseHandler):
             return None
 
     def _get(self, url, **kwargs):
-        return self._request('GET', url, kwargs)
+        return self._request(url, kwargs)
 
     def search(self, query, limit=10, offset=0, type='track', market=None):
         return self._get('search', q=query, limit=limit, offset=offset, type=type, market=market)
