@@ -1,8 +1,21 @@
 # coding=utf-8
-import random
+import sys
 
-"""Generate pseudorandom number."""
-num1 = [str(random.randint(0, 9)) for i in range(7)]
-num2 = [str(random.randint(0, 9)) for i in range(7)]
-num3 = [str(random.randint(0, 9)) for i in range(7)]
-print ''.join(num1) + '-' + ''.join(num2) + '-' + ''.join(num3)
+from flask import Flask, render_template, request, redirect, Response
+import random, json
+
+app = Flask(__name__)
+
+@app.route('/logindata', methods = ['POST'])
+def worker():
+    data = request.get_json()
+    result = ''
+
+    for item in data:
+        # loop over every row
+        result += str(item['make']) + '\n'
+
+    return result
+
+if __name__ == '__main__':
+    app.run()

@@ -31,10 +31,10 @@
 
         var id_token = googleUser.getAuthResponse().id_token;
 
+        document.getElementById("email").innerHTML = profile.getEmail();
 
-        document.getElementById("email").innerHTML = id_token;
-
-        request.open("GET", "/LoginGoogle", id_token, true); // preparar petición HTTP
+        uri = "/LoginGoogle?token=" + id_token + "&email=" + profile.getEmail()
+        request.open("GET", uri, true); // preparar petición HTTP
         request.send(null); // Enviar petición HTTP
     }
 
@@ -46,10 +46,17 @@
 <div class="wrapper">
     <div id="header">
 
-        <a href="">Login </a>
-        <button onclick="myFunction()">Sign Out</button>
+        <button onclick="login()">Login </button>
+        <script id="enter">
+            function login() {
+                var request = new XMLHttpRequest();
+                request.open("GET", "/LoginGoogle", true); // preparar petición HTTP
+                request.send(null); // Enviar petición HTTP
+            }
+        </script>
+        <button onclick="signOut()">Sign Out</button>
         <script id="exit">
-            function myFunction() {
+            function signOut() {
                 gapi.auth2.getAuthInstance().disconnect();
                 location.reload();
             }
