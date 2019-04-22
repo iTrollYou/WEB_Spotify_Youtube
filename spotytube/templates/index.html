@@ -28,9 +28,13 @@
         console.log('Name: ' + profile.getName());
         console.log('Image URL: ' + profile.getImageUrl());
         console.log('Email: ' + profile.getEmail()); // This is null if the 'email' scope is not present.
-        document.getElementById("email").innerHTML = profile.getEmail();
 
-        request.open("GET", "/LoginGoogle?email=" + profile.getEmail(), true); // preparar petición HTTP
+        var id_token = googleUser.getAuthResponse().id_token;
+
+
+        document.getElementById("email").innerHTML = id_token;
+
+        request.open("GET", "/LoginGoogle", id_token, true); // preparar petición HTTP
         request.send(null); // Enviar petición HTTP
     }
 
@@ -53,7 +57,7 @@
     </div>
     <div class="st-wrapper">
 
-        <div class="g-signin2" data-onsuccess="onSignIn"></div>
+        <div class="g-signin2" data-onsuccess="onSignIn" data-theme="dark"></div>
 
         <h1 class='st-tittle'>SpotyTube</h1>
 
@@ -67,7 +71,9 @@
             <div class="box">
                 <div class="container-1">
                     <span class="icon"><i class="fas fa-search"></i></span>
-                    <input type="search" id="search" placeholder="Search..."/>
+                    <form action="/SearchSpotify" method="get">
+                        <input type="search" name="search" id="search" placeholder="Search..."/>
+                    </form>
                 </div>
             </div>
 

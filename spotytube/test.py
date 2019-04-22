@@ -1,44 +1,19 @@
-# coding=utf-8
+# !/usr/bin/python
+# -*- coding: utf-8 -*-
 
 import base64
 import json
 import pprint
 import requests
 
-# Consumer Api Keys Spotify
 
-from requests import api
-
-_session = api
-prefix = 'https://api.spotify_utils.com/v1/'
-
-consumer_key = 'e5c792dbc36a4ec8a06e0bd91ef111eb'
-consumer_secret = '2e88aa2d92df480fb624202f7dd3adf6'
-
-OAUTH_TOKEN_URL = 'https://accounts.spotify_utils.com/api/token'
-authorization = base64.standard_b64encode(consumer_key + ':' + consumer_secret)
-
-headers = {'Authorization': 'Basic {0}'.format(authorization)}
-data = {'grant_type': 'client_credentials'}
-
-respuesta = requests.post(OAUTH_TOKEN_URL, headers=headers, data=data)
-print respuesta.status_code
-
-json_respuesta = json.loads(respuesta.content)
-print json_respuesta
-access_token = json_respuesta['access_token']
-
-
-# print 'Access_Token: ' + access_token
-
-
-def _request(method, url, data):
+def _request(url, data):
     data = dict(params=data)
     if not url.startswith('http'):
         url = prefix + url
     headers = {'Authorization': 'Bearer {0}'.format(access_token), 'Content-Type': 'application/json'}
 
-    respuesta = _session.request(method, url, headers=headers, **data)
+    respuesta = requests.get(url, headers=headers, **data)
     if respuesta.text and len(respuesta.text) > 0 and respuesta.text != 'null':
         results = respuesta.json()
         print()
@@ -48,53 +23,86 @@ def _request(method, url, data):
 
 
 def _get(url, **kwargs):
-    return _request('GET', url, kwargs)
+    return _request(url, kwargs)
 
 
 def search(query, limit=10, offset=0, type='track', market=None):
     return _get('search', q=query, limit=limit, offset=offset, type=type, market=market)
 
 
+def _get_id(type, id):
+    fields = id.split('/')
+    if len(fields) >= 3:
+        itype = fields[-2]
+        if type != itype:
+            print('expected id of type %s but found type %s %s',
+                  type, itype, id)
+        return fields[-1]
+    return id
+
+
+def search_playlist_uri(playlist):
+    items = search(query='playlist:' + playlist, type='playlist', limit=20)['playlists']['items']
+    if len(items) > 0:
+        return items
+
+
+def user_playlist_tracks(playlist_id=None, fields=None,
+                         limit=100, offset=0, market=None):
+    """ Get full details of the tracks of a playlist owned by a user.
+
+        Parameters:
+            - user - the id of the user
+            - playlist_id - the id of the playlist
+            - fields - which fields to return
+            - limit - the maximum number of tracks to return
+            - offset - the index of the first track to return
+            - market - an ISO 3166-1 alpha-2 country code.
+    """
+    plid = _get_id('playlist', playlist_id)
+    return _get("playlists/%s/tracks" % (plid),
+                limit=limit, offset=offset, fields=fields,
+                market=market)
+
+
+def get_tracks_from_playlist(playlist_url):
+    results = user_playlist_tracks(playlist_url, fields="items")
+    items = results['items']
+
+    for x in range(0, len(items)):
+        pprint.pprint(items[x]['track']['duration_ms'])
+        pprint.pprint(items[x]['track']['name'])
+
+
 #######################################################
+# Token
 
-artist = 'Carly Rae Jepsen'
-# result = search(artist)
-# id del artista
-# print (result['tracks']['items'][0]['artists'][0]['id'])
+prefix = 'https://api.spotify.com/v1/'
 
-'''
-Prueba busqueda
-url_search = 'https://api.spotify_utils.com/v1/search'
+# Consumer Api Keys Spotify
+consumer_key = 'cb169bdfb3884a03ba9c68932f87285b'
+consumer_secret = '5ad8b30856c64e569685769261fa2689'
 
-headers = {
-    'Authorization': 'Bearer {0}'.format(access_token),
-    'Accept': 'application/json',
-    'Content-Type': 'application/json'
-}
-data = {'q': artist,
-        'type': 'artist'}
+OAUTH_TOKEN_URL = 'https://accounts.spotify.com/api/token'
+authorization = base64.standard_b64encode(consumer_key + ':' + consumer_secret)
 
-data_encoded = urllib.urlencode(data)
+headers = {'Authorization': 'Basic {0}'.format(authorization)}
+data = {'grant_type': 'client_credentials'}
 
-url_search = url_search + '?' + data_encoded
+s = requests.Session()
 
-respuesta = requests.get(url_search, headers=headers)
+respuesta = s.post(OAUTH_TOKEN_URL, headers=headers, data=data)
 print respuesta.status_code
-print respuesta.content
 
-try:
-    respuesta.raise_for_status()
-    json_respuesta = json.loads(respuesta.content)
-    tmp = json_respuesta['artists']['items'][0]['id']
-    print tmp
+json_respuesta = json.loads(respuesta.content)
+print json_respuesta
+access_token = json_respuesta['access_token']
 
-except:
-    if respuesta.text and len(respuesta.text) > 0 and respuesta.text != 'null':
-        print respuesta.json()['error']['message']
-    else:
-        print respuesta.url, 'error'
+#######################################################
+# Get Playlists
 
-if respuesta.text and len(respuesta.text) > 0 and respuesta.text != 'null':
-    results = respuesta.json()
-print()
-'''
+playlist = 'https://open.spotify.com/playlist/37i9dQZF1DWXCGnD7W6WDX'
+
+get_tracks_from_playlist(playlist)
+
+pprint.pprint(search_playlist_uri('Ozuna'))

@@ -21,6 +21,10 @@ import jinja2
 import requests
 import requests_toolbelt.adapters.appengine
 
+from requests import api
+
+_session = api
+
 # Use the App Engine Requests adapter. This makes sure that Requests uses URLFetch.
 requests_toolbelt.adapters.appengine.monkeypatch()
 
@@ -28,8 +32,8 @@ app_id = 'spotytube'
 callback_url = 'https://' + app_id + '.appspot.com/oauth_callback'
 
 # Consumer Api Keys Spotify
-consumer_key = 'e5c792dbc36a4ec8a06e0bd91ef111eb'
-consumer_secret = '2e88aa2d92df480fb624202f7dd3adf6'
+consumer_key = 'cb169bdfb3884a03ba9c68932f87285b'
+consumer_secret = '5ad8b30856c64e569685769261fa2689'
 
 JINJA_ENVIRONMENT = jinja2.Environment(
     loader=jinja2.FileSystemLoader(os.path.join(os.path.dirname(__file__), 'templates')),
@@ -56,8 +60,11 @@ class BaseHandler(webapp2.RequestHandler):
 
 config = {'webapp2_extras.sessions': {'secret_key': 'my-super-secret-key'}}
 
+prefix = 'https://api.spotify.com/v1/'
+
 
 class MainHandler(BaseHandler):
+
     def get(self):
         logging.debug('ENTERING MainHandler --->')
 
@@ -82,8 +89,9 @@ class LoginAndAuthorizeHandler(BaseHandler):
         # Step 1: Obtaining a request token
         token_info = self._get_access_token()
         token_info_json = json.dumps(token_info)
+
         # and store  values
-        self.session['oauth_token'] = token_info_json
+        self.session['oauth_token'] = str(token_info_json).replace('"', '')
         # volver a index
         self.redirect('/')
 
@@ -116,7 +124,6 @@ class LoginAndAuthorizeHandler(BaseHandler):
 
     def _add_custom_values_to_token_info(self, token_info):
         token_info['expires_at'] = int(time.time()) + token_info['expires_in']
-        print token_info
         return token_info
 
     def is_token_expired(self, token_info):
@@ -155,16 +162,15 @@ class LoginAndAuthorizeGoogleHandler(BaseHandler):
 
         params = {'client_id': self.client_id,
                   'response_type': 'code',
-                  'scope': 'openid  andrea98.gar@gmail.com',
                   'nonce': self._generate_nonce(),
                   'redirect_uri': redirect_uri,
                   'state': state}
-        headers = {'User-Agent': 'Python Client'}
+        headers = {'User-Agent': 'Google App Engine'}
 
         params_encoded = urllib.urlencode(params)
 
         response = requests.get(server, headers=headers, params=params_encoded)
-
+        print response.content
         if response.status_code == 200:
             print 'holi'
             print response.content
@@ -178,9 +184,41 @@ class LoginAndAuthorizeGoogleHandler(BaseHandler):
         return ''.join(num1) + '-' + ''.join(num2) + '-' + ''.join(num3)
 
 
+class SearchSpotify(BaseHandler):
+    def get(self):
+        logging.debug('ENTERING SearchSpotify --->')
+        self.oauth_token = self.session['oauth_token']
+
+        to_search = self.request.get("search")
+        result = self.search(to_search)
+        # id del artista
+        print (result['tracks']['items'][0]['artists'][0]['id'])
+
+    def _request(self, method, url, data):
+        data = dict(params=data)
+        if not url.startswith('http'):
+            url = prefix + url
+        headers = {'Authorization': 'Bearer {0}'.format(self.oauth_token), 'Content-Type': 'application/json'}
+
+        respuesta = _session.request(method, url, headers=headers, **data)
+        if respuesta.text and len(respuesta.text) > 0 and respuesta.text != 'null':
+            results = respuesta.json()
+            print()
+            return results
+        else:
+            return None
+
+    def _get(self, url, **kwargs):
+        return self._request('GET', url, kwargs)
+
+    def search(self, query, limit=10, offset=0, type='track', market=None):
+        return self._get('search', q=query, limit=limit, offset=offset, type=type, market=market)
+
+
 app = webapp2.WSGIApplication([
     ('/', MainHandler),
     ('/LoginAndAuthorize', LoginAndAuthorizeHandler),
-    ('/LoginGoogle', LoginAndAuthorizeGoogleHandler)
+    ('/LoginGoogle', LoginAndAuthorizeGoogleHandler),
+    ('/SearchSpotify', SearchSpotify)
 
 ], config=config, debug=True)
