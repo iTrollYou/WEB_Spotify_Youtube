@@ -35,6 +35,10 @@ callback_url = 'https://' + app_id + '.appspot.com/oauth_callback'
 consumer_key = 'cb169bdfb3884a03ba9c68932f87285b'
 consumer_secret = '5ad8b30856c64e569685769261fa2689'
 
+# Google keys
+google_secret_key = "1FfMRgteyw6T8b46872U0dgb"
+client_id = "990115409802-q9o1n9f5hab5lrlg84l21u2si23m90ph.apps.googleusercontent.com"
+
 JINJA_ENVIRONMENT = jinja2.Environment(
     loader=jinja2.FileSystemLoader(os.path.join(os.path.dirname(__file__), 'templates')),
     extensions=['jinja2.ext.autoescape'],
@@ -132,8 +136,7 @@ class LoginAndAuthorizeHandler(BaseHandler):
 
 
 class LoginAndAuthorizeGoogleHandler(BaseHandler):
-    google_secret_key = "1FfMRgteyw6T8b46872U0dgb"
-    client_id = "990115409802-q9o1n9f5hab5lrlg84l21u2si23m90ph.apps.googleusercontent.com"
+
 
     def get(self):
         # Enviar una solicitud de autenticacion a google
@@ -141,15 +144,14 @@ class LoginAndAuthorizeGoogleHandler(BaseHandler):
         # Verify token
         # secretjson = self._verify_token(token)
 
-
     def _verify_token(self, token):
         params = {'id_token': token}
         response = requests.get("https://oauth2.googleapis.com/tokeninfo?", params=params)
         return response.content
 
     def _authentication_request(self):
-        redirect_uri = 'http://localhost:8080/oauth2callback' #Localhost
-        #redirect_uri = 'http://spotytube.appspot.com/oauth2callback'
+        redirect_uri = 'http://localhost:8080/oauth2callback'  # Localhost
+        # redirect_uri = 'http://spotytube.appspot.com/oauth2callback'
 
         server = 'https://accounts.google.com/o/oauth2/v2/auth'
 
@@ -165,7 +167,6 @@ class LoginAndAuthorizeGoogleHandler(BaseHandler):
         response = requests.get(server, headers=headers, params=params_encoded)
         if response.status_code == 200:
             self.redirect(str(response.url))
-
 
 
 class SearchSpotify(BaseHandler):
@@ -197,17 +198,30 @@ class SearchSpotify(BaseHandler):
     def search(self, query, limit=10, offset=0, type='track', market=None):
         return self._get('search', q=query, limit=limit, offset=offset, type=type, market=market)
 
+
 class OauthCallBackHandler(BaseHandler):
     def get(self):
         # Get code
         code = self.request.get('code')
 
         # Get token
-        headers={'Content-Type': 'application/x-www-form-urlencoded',
-                 'User-Agent': 'Google App Engine'}
-        response = requests.post("www.googleapis.com/oauth2/v4/token")
 
-        print code
+        redirect_uri = 'http://localhost:8080/oauth2callback'  # Localhost
+
+        headers = {
+            'Host': 'www.googleapis.com',
+            'Content-Type': 'application/x-www-form-urlencoded'}
+        data = {
+            'code': code,
+            'redirect_uri': redirect_uri,
+            'client_id': client_id,
+            'client_secret': google_secret_key,
+            'grant_type': 'authorization_code'
+        }
+        response = requests.post("https://www.googleapis.com/oauth2/v4/token", headers=headers, data=data)
+
+        print response.content
+
 
 app = webapp2.WSGIApplication([
     ('/', MainHandler),
