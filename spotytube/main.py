@@ -217,12 +217,39 @@ class OauthCallBackHandler(BaseHandler):
         self.session['yt_token'] = access_token
         self.redirect('/')
 
+class YoutubePlaylist(BaseHandler):
+    def get(self):
+        print self.session['yt_token']
 
+        headers = {'Authorization': 'Bearer {0}'.format(self.session['yt_token']),
+                   'Accept': 'application/json',
+                   'Content-Type': 'application/json',
+                   'User-Agent': 'Google App Engine'}
+
+        data = {'snippet': {'title': 'ozuna'}}
+        response = requests.post('https://www.googleapis.com/youtube/v3/playlists', headers=headers, data=data)
+        print response.content
+
+        def _buscar_cancion_(self):
+            params = {'part': 'snippet',
+                      'order': 'relevance',
+                      'q': 'ozuna',
+                      'type': 'video'}
+            params_encoded = urllib.urlencode(params)
+
+            headers = {'Authorization': 'Bearer {0}'.format(self.session['yt_token']),
+                       'Accept': 'application/json'}
+
+            response = requests.get("https://www.googleapis.com/youtube/v3/search", headers=headers,
+                                    params=params_encoded)
+
+            print response.content
 app = webapp2.WSGIApplication([
     ('/', MainHandler),
     ('/LoginAndAuthorize', LoginAndAuthorizeHandler),
     ('/LoginGoogle', LoginAndAuthorizeGoogleHandler),
     ('/oauth2callback', OauthCallBackHandler),
-    ('/SearchSpotify', SearchSpotify)
+    ('/SearchSpotify', SearchSpotify),
+    ('/Playlist', YoutubePlaylist)
 
 ], config=config, debug=True)
