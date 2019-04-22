@@ -137,13 +137,11 @@ class LoginAndAuthorizeHandler(BaseHandler):
 
 class LoginAndAuthorizeGoogleHandler(BaseHandler):
 
-
     def get(self):
         # Enviar una solicitud de autenticacion a google
         self._authentication_request()
         # Verify token
         # secretjson = self._verify_token(token)
-
 
     def _verify_token(self, token):
         params = {'id_token': token}
@@ -151,8 +149,8 @@ class LoginAndAuthorizeGoogleHandler(BaseHandler):
         return response.content
 
     def _authentication_request(self):
-        redirect_uri = 'http://localhost:8080/oauth2callback' #Localhost
-        #redirect_uri = 'http://spotytube.appspot.com/oauth2callback'
+        redirect_uri = 'http://localhost:8080/oauth2callback'  # Localhost
+        # redirect_uri = 'http://spotytube.appspot.com/oauth2callback'
 
         server = 'https://accounts.google.com/o/oauth2/v2/auth'
 
@@ -168,7 +166,6 @@ class LoginAndAuthorizeGoogleHandler(BaseHandler):
         response = requests.get(server, headers=headers, params=params_encoded)
         if response.status_code == 200:
             self.redirect(str(response.url))
-
 
 
 class SearchSpotify(BaseHandler):
@@ -200,6 +197,7 @@ class SearchSpotify(BaseHandler):
     def search(self, query, limit=10, offset=0, type='track', market=None):
         return self._get('search', q=query, limit=limit, offset=offset, type=type, market=market)
 
+
 class OauthCallBackHandler(BaseHandler):
     def get(self):
         # Get code
@@ -207,19 +205,22 @@ class OauthCallBackHandler(BaseHandler):
         print code
 
         # Get token
-        redirect_uri = 'http://localhost:8080/oauth2callback' #Localhost
+        redirect_uri = 'http://localhost:8080/oauth2callback'  # Localhost
 
-        headers={'Content-Type': 'application/x-www-form-urlencoded',
-                 'User-Agent': 'Google App Engine',
-                 'code': code,
-                 'redirect_uri': redirect_uri,
-                 'client_id': client_id,
-                 'client_secret': google_secret_key,
-                 'grant_type': 'Authorization_code'}
-
-        response = requests.post("https://googleapis.com/oauth2/v4/token", headers=headers)
+        headers = {
+            'Host': 'www.googleapis.com',
+            'Content-Type': 'application/x-www-form-urlencoded'}
+        data = {
+            'code': code,
+            'redirect_uri': redirect_uri,
+            'client_id': client_id,
+            'client_secret': google_secret_key,
+            'grant_type': 'authorization_code'
+        }
+        response = requests.post("https://www.googleapis.com/oauth2/v4/token", headers=headers, data=data)
 
         print response.content
+
 
 app = webapp2.WSGIApplication([
     ('/', MainHandler),
