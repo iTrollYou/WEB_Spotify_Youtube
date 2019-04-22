@@ -213,11 +213,10 @@ class OauthCallBackHandler(BaseHandler):
 
         json_respuesta = json.loads(response.content)
         access_token = json_respuesta['access_token']
-        print response.content
+        #print response.content
 
         self.session['yt_token'] = access_token
-
-        
+        self.redirect('/')
 
 
 
