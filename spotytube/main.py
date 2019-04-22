@@ -35,6 +35,10 @@ callback_url = 'https://' + app_id + '.appspot.com/oauth_callback'
 consumer_key = 'cb169bdfb3884a03ba9c68932f87285b'
 consumer_secret = '5ad8b30856c64e569685769261fa2689'
 
+# Google keys
+google_secret_key = "1FfMRgteyw6T8b46872U0dgb"
+client_id = "990115409802-q9o1n9f5hab5lrlg84l21u2si23m90ph.apps.googleusercontent.com"
+
 JINJA_ENVIRONMENT = jinja2.Environment(
     loader=jinja2.FileSystemLoader(os.path.join(os.path.dirname(__file__), 'templates')),
     extensions=['jinja2.ext.autoescape'],
@@ -132,8 +136,7 @@ class LoginAndAuthorizeHandler(BaseHandler):
 
 
 class LoginAndAuthorizeGoogleHandler(BaseHandler):
-    google_secret_key = "1FfMRgteyw6T8b46872U0dgb"
-    client_id = "990115409802-q9o1n9f5hab5lrlg84l21u2si23m90ph.apps.googleusercontent.com"
+
 
     def get(self):
         # Enviar una solicitud de autenticacion a google
@@ -153,7 +156,7 @@ class LoginAndAuthorizeGoogleHandler(BaseHandler):
 
         server = 'https://accounts.google.com/o/oauth2/v2/auth'
 
-        params = {'client_id': self.client_id,
+        params = {'client_id': client_id,
                   'response_type': 'code',
                   'scope': 'https://www.googleapis.com/auth/youtube',
                   'redirect_uri': redirect_uri}
@@ -163,19 +166,9 @@ class LoginAndAuthorizeGoogleHandler(BaseHandler):
         params_encoded = urllib.urlencode(params)
 
         response = requests.get(server, headers=headers, params=params_encoded)
-        #print response.content
         if response.status_code == 200:
-            print 'holi'
             self.redirect(str(response.url))
 
-
-    def _generate_nonce(self):
-        """Generate pseudorandom number."""
-        # return ''.join([str(random.randint(0, 9)) for i in range(length)])
-        num1 = [str(random.randint(0, 9)) for i in range(7)]
-        num2 = [str(random.randint(0, 9)) for i in range(7)]
-        num3 = [str(random.randint(0, 9)) for i in range(7)]
-        return ''.join(num1) + '-' + ''.join(num2) + '-' + ''.join(num3)
 
 
 class SearchSpotify(BaseHandler):
@@ -207,11 +200,32 @@ class SearchSpotify(BaseHandler):
     def search(self, query, limit=10, offset=0, type='track', market=None):
         return self._get('search', q=query, limit=limit, offset=offset, type=type, market=market)
 
+class OauthCallBackHandler(BaseHandler):
+    def get(self):
+        # Get code
+        code = self.request.get('code')
+        print code
+
+        # Get token
+        redirect_uri = 'http://localhost:8080/oauth2callback' #Localhost
+
+        headers={'Content-Type': 'application/x-www-form-urlencoded',
+                 'User-Agent': 'Google App Engine',
+                 'code': code,
+                 'redirect_uri': redirect_uri,
+                 'client_id': client_id,
+                 'client_secret': google_secret_key,
+                 'grant_type': 'Authorization_code'}
+
+        response = requests.post("https://googleapis.com/oauth2/v4/token", headers=headers)
+
+        print response.content
 
 app = webapp2.WSGIApplication([
     ('/', MainHandler),
     ('/LoginAndAuthorize', LoginAndAuthorizeHandler),
     ('/LoginGoogle', LoginAndAuthorizeGoogleHandler),
+    ('/oauth2callback', OauthCallBackHandler),
     ('/SearchSpotify', SearchSpotify)
 
 ], config=config, debug=True)
