@@ -9,10 +9,6 @@
     <script src='https://cdnjs.cloudflare.com/ajax/libs/jquery/2.2.2/jquery.min.js'></script>
     <script src="/js/javascript_header.js"></script>
 
-    <script src="https://apis.google.com/js/platform.js" async defer></script>
-    <meta name="google-signin-client_id"
-          content="990115409802-q9o1n9f5hab5lrlg84l21u2si23m90ph.apps.googleusercontent.com">
-
     <link href='https://fonts.googleapis.com/css?family=Raleway' rel='stylesheet' type='text/css'>
     <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.1/css/all.css"
           integrity="sha384-50oBUHEmvpQ+1lW4y57PTFmhCaXp0ML5d60M1M7uH2+nqUivzIebhndOJK28anvf" crossorigin="anonymous">
@@ -22,24 +18,7 @@
 <body>
 
 <div class="wrapper">
-    <div id="header">
 
-        <button onclick="login()">Login </button>
-        <script id="enter">
-            function login() {
-                var request = new XMLHttpRequest();
-                request.open("GET", "/LoginGoogle", true); // preparar petición HTTP
-                request.send(null); // Enviar petición HTTP
-            }
-        </script>
-        <button onclick="signOut()">Sign Out</button>
-        <script id="exit">
-            function signOut() {
-                gapi.auth2.getAuthInstance().disconnect();
-                location.reload();
-            }
-        </script>
-    </div>
     <div class="st-wrapper">
 
         <h1 class='st-tittle'>SpotyTube</h1>
