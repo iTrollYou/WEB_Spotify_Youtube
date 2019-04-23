@@ -41,11 +41,6 @@ JINJA_ENVIRONMENT = jinja2.Environment(
     autoescape=True)
 
 
-def is_spotify_token_expired(self, token_info):
-    now = int(time.time())
-    return token_info['expires_at'] - now < 60
-
-
 class BaseHandler(webapp2.RequestHandler):
     def dispatch(self):
         # Get a session store for this request.
@@ -98,12 +93,21 @@ class MainHandler(BaseHandler):
 
         spotify_token = self.session.get('spotify_token')
 
-        if spotify_token is None or is_spotify_token_expired(spotify_token):
+        if spotify_token is None:
             # Si no hay token
             self.redirect('/LoginAndAuthorize')
 
+        else:
+            if is_spotify_token_expired(spotify_token):
+                self.redirect('/LoginAndAuthorize')
+
 
 # Spotify
+def is_spotify_token_expired(token_info):
+    now = int(time.time())
+    return token_info['expires_at'] - now < 60
+
+
 class LoginAndAuthorizeHandler(BaseHandler):
     token_info = None
 
@@ -112,23 +116,19 @@ class LoginAndAuthorizeHandler(BaseHandler):
 
         # Step 1: Obtaining a request token
         token_info = self._get_access_token()
-        token_info_json = json.dumps(token_info)
 
         # and store  values
-        self.session['spotify_token'] = str(token_info_json).replace('"', '')
-        print str(token_info_json).replace('"', '')
-        # volver a index
+        self.session['spotify_token'] = token_info
         self.redirect('/')
 
     def _get_access_token(self):
-        if self.token_info:
-            return self.token_info['access_token']
-
         token_info = self._request_token()
         token_info = self._add_custom_values_to_token_info(token_info)
+
+        # pprint.pprint(token_info)
         self.token_info = token_info
 
-        return self.token_info['access_token']
+        return self.token_info
 
     @staticmethod
     def _request_token():
@@ -155,13 +155,17 @@ class LoginAndAuthorizeHandler(BaseHandler):
 class SearchSpotify(BaseHandler):
     def get(self):
         logging.debug('ENTERING SearchSpotify --->')
-        self.spotify_token = self.session['spotify_token']
+        self.spotify_token = self.session['spotify_token']['access_token']
 
         to_search = self.request.get("search")
         # comprobar si es nombre de playlist o url
+        # si es url extraer el id
+        result = self.get_tracks_from_playlist(to_search)
+        pprint.pprint(result)
+        # result = self._search_playlists(to_search)
 
-        result = self._search_playlists(to_search)
-        self._print_images(result)
+        # pprint.pprint(result)
+        # self._print_images(result)
         self.redirect('/')
 
     def _request(self, url, data):
@@ -170,7 +174,7 @@ class SearchSpotify(BaseHandler):
                    'Content-Type': 'application/json'}
 
         data = dict(params=data)
-        pprint.pprint(data)
+        # pprint.pprint(data)
         response = requests.get(url, headers=headers, **data)
         if response.text and len(response.text) > 0 and response.text != 'null':
             return response.json()
@@ -185,9 +189,26 @@ class SearchSpotify(BaseHandler):
                          type=type, market=market)
 
     def _search_playlists(self, playlist):
-        items = self._search(query=playlist, type='playlist', limit=10, market='ES', offset=0)
+        items = self._search(query=playlist, type='playlist', limit=9, market='ES', offset=0)
         if len(items) > 0:
             return items
+
+    def playlist_tracks(self, playlist_id=None, fields=None,
+                        limit=100, offset=0, market=None):
+
+        plid = self.extract_spotify_id(playlist_id)
+
+        return self._get("https://api.spotify.com/v1/playlists/{0}/tracks".format(plid),
+                         limit=limit, offset=offset, fields=fields,
+                         market=market)
+
+    def get_tracks_from_playlist(self, playlist_url):
+        results = self.playlist_tracks(playlist_url, fields="items")
+        items = results['items']
+        return items
+        for x in range(0, len(items)):
+            pprint.pprint(items[x]['track']['duration_ms'])
+            pprint.pprint(items[x]['track']['name'])
 
     def _print_images(self, result):
         if result['playlists']['next'] is not None:
@@ -198,6 +219,21 @@ class SearchSpotify(BaseHandler):
                 imageText = 'imageText' + str(x + 1)
                 self.session[imageText] = items[x]['name']
                 self.session[image] = items[x]['images'][0]['url']
+
+    def extract_spotify_id(self, raw_string):
+        # print raw_string
+        # Input string is an HTTP URL
+        if raw_string.endswith("/"):
+            raw_string = raw_string[:-1]
+        to_trim = raw_string.find("?")
+
+        if not to_trim == -1:
+            raw_string = raw_string[:to_trim]
+        splits = raw_string.split("/")
+
+        spotify_id = splits[-1]
+
+        return spotify_id
 
 
 class LoginAndAuthorizeGoogleHandler(BaseHandler):
@@ -255,59 +291,35 @@ class OauthCallBackHandler(BaseHandler):
 
 class YoutubePlaylist(BaseHandler):
     def get(self):
+        print self.session['yt_token']
 
-        idPlaylist = self._crear_playlist_('Ed Sheeran')
-        videoId = self._buscar_cancion_('Perfect')
-        self._anadir_cancion(idPlaylist, videoId)
-
-    def _buscar_cancion_(self, titulo):
-        params = {'part': 'snippet',
-                  'order': 'relevance',
-                  'q': titulo,
-                  'type': 'video'}
-        params_encoded = urllib.urlencode(params)
-
-        headers = {'Authorization': 'Bearer {0}'.format(self.session['yt_token']),
-                       'Accept': 'application/json'}
-
-        response = requests.get("https://www.googleapis.com/youtube/v3/search", headers=headers,
-                                    params=params_encoded)
-
-        json_respuesta = json.loads(response.content)
-        items = json_respuesta['items']
-        return items[0]['id']['videoId']
-
-    def _crear_playlist_(self, nombre):
-        headers = {'Authorization': 'Bearer {0}'.format(self.session['yt_token']),
-                       'Accept': 'application/json',
-                       'Content-Type': 'application/json'}
-
-        params = {'part': 'snippet'}
-        params_encoded = urllib.urlencode(params)
-
-        data = {'snippet': {'title': nombre}}
-        jsondata = json.dumps(data)
-        response = requests.post('https://www.googleapis.com/youtube/v3/playlists?' + params_encoded,
-                                headers=headers, data=jsondata)
-        json_respuesta = json.loads(response.content)
-        return json_respuesta['id']
-
-    def _anadir_cancion(self, playlistId, videoId):
         headers = {'Authorization': 'Bearer {0}'.format(self.session['yt_token']),
                    'Accept': 'application/json',
                    'Content-Type': 'application/json'}
+
         params = {'part': 'snippet'}
         params_encoded = urllib.urlencode(params)
 
-        data = {'snippet': {'playlistId': playlistId,
-                            'resourceId': {
-                                'videoId': videoId,
-                                'kind': 'youtube#video'}
-                            }
-                }
+        data = {'snippet': {'title': 'ozuna'}}
         jsondata = json.dumps(data)
-        response = requests.post('https://www.googleapis.com/youtube/v3/playlistItems?' + params_encoded,
-                                 headers=headers, data=jsondata)
+        response = requests.post('https://www.googleapis.com/youtube/v3/playlists?' + params_encoded, headers=headers,
+                                 data=jsondata)
+        print response.content
+
+        def _buscar_cancion_(self):
+            params = {'part': 'snippet',
+                      'order': 'relevance',
+                      'q': 'ozuna',
+                      'type': 'video'}
+            params_encoded = urllib.urlencode(params)
+
+            headers = {'Authorization': 'Bearer {0}'.format(self.session['yt_token']),
+                       'Accept': 'application/json'}
+
+            response = requests.get("https://www.googleapis.com/youtube/v3/search", headers=headers,
+                                    params=params_encoded)
+
+            print response.content
 
 
 app = webapp2.WSGIApplication([
