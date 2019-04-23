@@ -41,6 +41,11 @@ JINJA_ENVIRONMENT = jinja2.Environment(
     autoescape=True)
 
 
+def is_spotify_token_expired(self, token_info):
+    now = int(time.time())
+    return token_info['expires_at'] - now < 60
+
+
 class BaseHandler(webapp2.RequestHandler):
     def dispatch(self):
         # Get a session store for this request.
@@ -93,7 +98,7 @@ class MainHandler(BaseHandler):
 
         spotify_token = self.session.get('spotify_token')
 
-        if spotify_token is None:
+        if spotify_token is None or is_spotify_token_expired(spotify_token):
             # Si no hay token
             self.redirect('/LoginAndAuthorize')
 
@@ -116,7 +121,7 @@ class LoginAndAuthorizeHandler(BaseHandler):
         self.redirect('/')
 
     def _get_access_token(self):
-        if self.token_info and not self.is_token_expired(self.token_info):
+        if self.token_info:
             return self.token_info['access_token']
 
         token_info = self._request_token()
@@ -145,10 +150,6 @@ class LoginAndAuthorizeHandler(BaseHandler):
     def _add_custom_values_to_token_info(self, token_info):
         token_info['expires_at'] = int(time.time()) + token_info['expires_in']
         return token_info
-
-    def is_token_expired(self, token_info):
-        now = int(time.time())
-        return token_info['expires_at'] - now < 60
 
 
 class SearchSpotify(BaseHandler):
