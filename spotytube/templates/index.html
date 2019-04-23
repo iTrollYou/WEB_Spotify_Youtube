@@ -14,12 +14,13 @@
 </head>
 
 <script type="text/javascript">
+
     function myScript() {
 
         var html = '';
-        var aux = 'image';
+        //var aux = 'image';
         for (var i = 1; i < 10; i++) {
-            aux += i;
+            //aux += i;
             var image = '';
             var text = '';
             switch (i) {
@@ -82,7 +83,7 @@
     }
 </script>
 
-<body onload="myScript()">
+<body>
 
 <div class="wrapper">
 
@@ -91,9 +92,10 @@
         <h1 class='st-tittle'><img class="image" src="/img/spotytube.png"></h1>
         <div class='pre-awesome-line'></div>
 
-
+        {% for names in playlist_images %}
+        <li>{{names}}</li>
+        {% endfor %}
         <section class="content wrapper">
-
             <div class="box">
                 <div class="container-1">
                     <span class="icon"><i class="fas fa-search"></i></span>
@@ -103,11 +105,8 @@
                 </div>
             </div>
 
-
             <div class="row">
-
             </div>
-
 
         </section>
     </div>
