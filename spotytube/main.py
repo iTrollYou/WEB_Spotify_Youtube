@@ -160,9 +160,9 @@ class SearchSpotify(BaseHandler):
         to_search = self.request.get("search")
         # comprobar si es nombre de playlist o url
         # si es url extraer el id
-        result = self.get_tracks_from_playlist(to_search)
-        pprint.pprint(result)
-        # result = self._search_playlists(to_search)
+        # result = self.get_tracks_from_playlist(to_search)
+        # pprint.pprint(result)
+        result = self._search_playlists(to_search)
 
         # pprint.pprint(result)
         # self._print_images(result)
