@@ -165,7 +165,7 @@ class SearchSpotify(BaseHandler):
         result = self._search_playlists(to_search)
 
         # pprint.pprint(result)
-        # self._print_images(result)
+        self._print_images(result)
         self.redirect('/')
 
     def _request(self, url, data):
