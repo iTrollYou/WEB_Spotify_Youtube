@@ -134,6 +134,7 @@ body {
 
 /* Add some shadows to create a card effect */
 .card {
+    position: relative;
     box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
 }
 
@@ -154,21 +155,41 @@ body {
 }
 
 .button {
-    border: none;
-    outline: 0;
-    display: inline-block;
-    padding: 8px;
-    color: white;
-    background-color: #000;
-    text-align: center;
-    cursor: pointer;
-    width: 100%;
+    border: none; /* Remove borders */
+    color: white; /* Add a text color */
+    padding: 14px 28px; /* Add some padding */
+    cursor: pointer; /* Add a pointer cursor on mouse-over */
+    background-color: #4CAF50;
 }
 
 .button:hover {
-    background-color: #555;
+    background-color: #46a049;
+
 }
 
-img {
-    border-radius: 50%;
+/* The overlay effect - lays on top of the container and over the image */
+.overlay {
+    position: absolute;
+    bottom: 0;
+    background: rgb(0, 0, 0);
+    background: rgba(0, 0, 0, 0.5); /* Black see-through */
+    color: #f1f1f1;
+    width: 100%;
+    transition: .5s ease;
+    opacity: 0;
+    color: white;
+    font-size: 20px;
+    padding: 20px;
+    text-align: center;
 }
+
+/* When you mouse over the container, fade in the overlay title */
+.card:hover .overlay {
+    opacity: 1;
+}
+
+.image {
+    max-width: 100%;
+    height: auto;
+}
+

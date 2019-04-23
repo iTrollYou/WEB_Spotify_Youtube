@@ -72,7 +72,7 @@ class BaseHandler(webapp2.RequestHandler):
                            'imageText9': self.session.get('imageText9'),
 
                            }
-        pprint.pprint(template_values)
+        # pprint.pprint(template_values)
 
         template = JINJA_ENVIRONMENT.get_template('index.html')
         self.response.write(template.render(template_values))
@@ -85,17 +85,15 @@ class BaseHandler(webapp2.RequestHandler):
 
 config = {'webapp2_extras.sessions': {'secret_key': 'my-super-secret-key'}}
 
-prefix = 'https://api.spotify.com/v1/'
-
 
 class MainHandler(BaseHandler):
 
     def get(self):
         logging.debug('ENTERING MainHandler --->')
 
-        oauth_token = self.session.get('oauth_token')
+        spotify_token = self.session.get('spotify_token')
 
-        if oauth_token is None:
+        if spotify_token is None:
             # Si no hay token
             self.redirect('/LoginAndAuthorize')
 
@@ -112,7 +110,7 @@ class LoginAndAuthorizeHandler(BaseHandler):
         token_info_json = json.dumps(token_info)
 
         # and store  values
-        self.session['oauth_token'] = str(token_info_json).replace('"', '')
+        self.session['spotify_token'] = str(token_info_json).replace('"', '')
         print str(token_info_json).replace('"', '')
         # volver a index
         self.redirect('/')
@@ -135,9 +133,9 @@ class LoginAndAuthorizeHandler(BaseHandler):
                    'Authorization': 'Basic {0}'.format(authorization)}
         data = {'grant_type': 'client_credentials'}
 
-        oauth_token_url = 'https://accounts.spotify.com/api/token'
+        spotify_token_url = 'https://accounts.spotify.com/api/token'
 
-        response = requests.post(oauth_token_url, headers=headers, data=data)
+        response = requests.post(spotify_token_url, headers=headers, data=data)
 
         if response.status_code != 200:
             print response.reason
@@ -156,54 +154,49 @@ class LoginAndAuthorizeHandler(BaseHandler):
 class SearchSpotify(BaseHandler):
     def get(self):
         logging.debug('ENTERING SearchSpotify --->')
-        self.oauth_token = self.session['oauth_token']
+        self.spotify_token = self.session['spotify_token']
 
         to_search = self.request.get("search")
-        result = self.search_playlist_uri(to_search)
-        self.print_images(result)
+        # comprobar si es nombre de playlist o url
+
+        result = self._search_playlists(to_search)
+        self._print_images(result)
         self.redirect('/')
-        # id del artista
-        # print (result['tracks']['items'][0]['artists'][0]['id'])
 
     def _request(self, url, data):
-        data = dict(params=data)
-        if not url.startswith('http'):
-            url = prefix + url
-        headers = {'Authorization': 'Bearer {0}'.format(self.oauth_token), 'Content-Type': 'application/json'}
 
-        respuesta = requests.get(url, headers=headers, **data)
-        if respuesta.text and len(respuesta.text) > 0 and respuesta.text != 'null':
-            results = respuesta.json()
-            print()
-            return results
+        headers = {'Authorization': 'Bearer {0}'.format(self.spotify_token),
+                   'Content-Type': 'application/json'}
+
+        data = dict(params=data)
+        pprint.pprint(data)
+        response = requests.get(url, headers=headers, **data)
+        if response.text and len(response.text) > 0 and response.text != 'null':
+            return response.json()
         else:
             return None
 
     def _get(self, url, **kwargs):
         return self._request(url, kwargs)
 
-    def search(self, q, limit=10, offset=0, type='track', market=None):
-        return self._get('search', q=q, limit=limit, offset=offset, type=type, market=market)
+    def _search(self, query, limit=10, offset=0, type='track', market=None):
+        return self._get('https://api.spotify.com/v1/search', q=query, limit=limit, offset=offset,
+                         type=type, market=market)
 
-    def search_playlist_uri(self, playlist):
-        items = self.search(q='playlist:' + playlist, type='playlist', limit=20)['playlists']['items']
+    def _search_playlists(self, playlist):
+        items = self._search(query=playlist, type='playlist', limit=10, market='ES', offset=0)
         if len(items) > 0:
             return items
 
-    def print_images(self, result):
-        for x in range(0, 8, 1):
-            # print (result[x]['images'][0]['url'])
-            image = 'image' + str(x + 1)
-            imageText = 'imageText' + str(x + 1)
-            self.session[imageText] = re.sub(r'[^\x00-\x7F]+', ' ', result[x]['name'])
-            # print self.session[imageText]
-            self.session[image] = result[x]['images'][0]['url']
-            print self.session[imageText]
-        print 'image debe cambiar'
-        # image = {'image': result[0]['images'][0]['url']}
-
-        # template = JINJA_ENVIRONMENT.get_template('index.html')
-        # self.response.write(template.render(template_values))
+    def _print_images(self, result):
+        if result['playlists']['next'] is not None:
+            items = result['playlists']['items']
+            # pprint.pprint(items)
+            for x in range(0, len(items), 1):
+                image = 'image' + str(x + 1)
+                imageText = 'imageText' + str(x + 1)
+                self.session[imageText] = items[x]['name']
+                self.session[image] = items[x]['images'][0]['url']
 
 
 class LoginAndAuthorizeGoogleHandler(BaseHandler):
@@ -258,6 +251,7 @@ class OauthCallBackHandler(BaseHandler):
         self.session['yt_token'] = access_token
         self.redirect('/')
 
+
 class YoutubePlaylist(BaseHandler):
     def get(self):
         print self.session['yt_token']
@@ -271,7 +265,8 @@ class YoutubePlaylist(BaseHandler):
 
         data = {'snippet': {'title': 'ozuna'}}
         jsondata = json.dumps(data)
-        response = requests.post('https://www.googleapis.com/youtube/v3/playlists?'+params_encoded, headers=headers, data=jsondata)
+        response = requests.post('https://www.googleapis.com/youtube/v3/playlists?' + params_encoded, headers=headers,
+                                 data=jsondata)
         print response.content
 
         def _buscar_cancion_(self):
@@ -288,6 +283,8 @@ class YoutubePlaylist(BaseHandler):
                                     params=params_encoded)
 
             print response.content
+
+
 app = webapp2.WSGIApplication([
     ('/', MainHandler),
     ('/LoginAndAuthorize', LoginAndAuthorizeHandler),

@@ -9,6 +9,7 @@ import requests
 
 def _request(url, data):
     data = dict(params=data)
+    print data
     if not url.startswith('http'):
         url = prefix + url
     headers = {'Authorization': 'Bearer {0}'.format(access_token), 'Content-Type': 'application/json'}
@@ -41,8 +42,9 @@ def _get_id(type, id):
 
 
 def search_playlist_uri(playlist):
-    items = search(query='playlist:' + playlist, type='playlist', limit=20)['playlists']['items']
+    items = search(query=playlist, type='playlist', limit=20)
     if len(items) > 0:
+        pprint.pprint(items)
         return items
 
 
@@ -104,7 +106,3 @@ playlist = 'https://open.spotify.com/playlist/37i9dQZF1DWXCGnD7W6WDX'
 
 # get_tracks_from_playlist(playlist)
 result = search_playlist_uri('Ozuna')
-
-for x in range(0, len(result), 1):
-    print (result[x]['name'].encode('utf-8').strip())
-
