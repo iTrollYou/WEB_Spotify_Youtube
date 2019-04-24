@@ -277,35 +277,59 @@ class OauthCallBackHandler(BaseHandler):
 
 class YoutubePlaylist(BaseHandler):
     def get(self):
-        print self.session['yt_token']
+
+        idPlaylist = self._crear_playlist_('Ed Sheeran')
+        videoId = self._buscar_cancion_('Perfect')
+        self._anadir_cancion(idPlaylist, videoId)
+
+    def _buscar_cancion_(self, titulo):
+        params = {'part': 'snippet',
+                  'order': 'relevance',
+                  'q': titulo,
+                  'type': 'video'}
+        params_encoded = urllib.urlencode(params)
 
         headers = {'Authorization': 'Bearer {0}'.format(self.session['yt_token']),
-                   'Accept': 'application/json',
-                   'Content-Type': 'application/json'}
+                       'Accept': 'application/json'}
+
+        response = requests.get("https://www.googleapis.com/youtube/v3/search", headers=headers,
+                                    params=params_encoded)
+
+        json_respuesta = json.loads(response.content)
+        items = json_respuesta['items']
+        return items[0]['id']['videoId']
+
+    def _crear_playlist_(self, nombre):
+        headers = {'Authorization': 'Bearer {0}'.format(self.session['yt_token']),
+                       'Accept': 'application/json',
+                       'Content-Type': 'application/json'}
 
         params = {'part': 'snippet'}
         params_encoded = urllib.urlencode(params)
 
-        data = {'snippet': {'title': 'ozuna'}}
+        data = {'snippet': {'title': nombre}}
         jsondata = json.dumps(data)
-        response = requests.post('https://www.googleapis.com/youtube/v3/playlists?' + params_encoded, headers=headers,
-                                 data=jsondata)
-        print response.content
+        response = requests.post('https://www.googleapis.com/youtube/v3/playlists?' + params_encoded,
+                                headers=headers, data=jsondata)
+        json_respuesta = json.loads(response.content)
+        return json_respuesta['id']
 
-        def _buscar_cancion_(self):
-            params = {'part': 'snippet',
-                      'order': 'relevance',
-                      'q': 'ozuna',
-                      'type': 'video'}
-            params_encoded = urllib.urlencode(params)
+    def _anadir_cancion(self, playlistId, videoId):
+        headers = {'Authorization': 'Bearer {0}'.format(self.session['yt_token']),
+                   'Accept': 'application/json',
+                   'Content-Type': 'application/json'}
+        params = {'part': 'snippet'}
+        params_encoded = urllib.urlencode(params)
 
-            headers = {'Authorization': 'Bearer {0}'.format(self.session['yt_token']),
-                       'Accept': 'application/json'}
-
-            response = requests.get("https://www.googleapis.com/youtube/v3/search", headers=headers,
-                                    params=params_encoded)
-
-            print response.content
+        data = {'snippet': {'playlistId': playlistId,
+                            'resourceId': {
+                                'videoId': videoId,
+                                'kind': 'youtube#video'}
+                            }
+                }
+        jsondata = json.dumps(data)
+        response = requests.post('https://www.googleapis.com/youtube/v3/playlistItems?' + params_encoded,
+headers=headers, data=jsondata)
 
 
 app = webapp2.WSGIApplication([
