@@ -21,6 +21,8 @@ import requests
 import requests_toolbelt.adapters.appengine
 
 # Use the App Engine Requests adapter. This makes sure that Requests uses URLFetch.
+from spotytube_utils import metadata
+
 requests_toolbelt.adapters.appengine.monkeypatch()
 
 app_id = 'spotytube'
@@ -142,17 +144,23 @@ class SearchSpotify(BaseHandler):
     def get(self):
         logging.debug('ENTERING SearchSpotify --->')
         self.spotify_token = self.session['spotify_token']['access_token']
+        playlist_id = self.request.get("id")
 
-        to_search = self.request.get("search")
         # comprobar si es nombre de playlist o url
-        # si es url extraer el id
-        # result = self.get_tracks_from_playlist(to_search)
-        # pprint.pprint(result)
-        result = self._search_playlists(to_search)
+        if playlist_id is "":
+            to_search = self.request.get("search")
+            result = self._search_playlists(to_search)
 
-        # pprint.pprint(result)
-        self._print_images(result)
-        self.redirect('/')
+            # pprint.pprint(result)
+            self._print_images(result)
+            self.redirect('/')
+        else:
+            self.metadata = metadata({})
+            # si es url extraer el id
+            playlist_tracks = self.get_tracks_from_playlist(playlist_id)
+            for track in playlist_tracks:
+                track_formatted = metadata(track)
+                print track_formatted.track
 
     def _request(self, url, data):
 
@@ -224,10 +232,12 @@ class SearchSpotify(BaseHandler):
 
         return spotify_id
 
+
 class ShowSongsSpotify(BaseHandler):
     def get(self):
         id = self.request.get('id')
         print id
+
 
 class LoginAndAuthorizeGoogleHandler(BaseHandler):
 
@@ -282,10 +292,8 @@ class OauthCallBackHandler(BaseHandler):
         self.redirect('/')
 
 
-
 class YoutubePlaylist(BaseHandler):
     def get(self):
-
         idPlaylist = self._crear_playlist_('Ed Sheeran')
         videoId = self._buscar_cancion_('Perfect')
         self._anadir_cancion(idPlaylist, videoId)
@@ -298,10 +306,10 @@ class YoutubePlaylist(BaseHandler):
         params_encoded = urllib.urlencode(params)
 
         headers = {'Authorization': 'Bearer {0}'.format(self.session['yt_token']),
-                       'Accept': 'application/json'}
+                   'Accept': 'application/json'}
 
         response = requests.get("https://www.googleapis.com/youtube/v3/search", headers=headers,
-                                    params=params_encoded)
+                                params=params_encoded)
 
         json_respuesta = json.loads(response.content)
         items = json_respuesta['items']
@@ -309,8 +317,8 @@ class YoutubePlaylist(BaseHandler):
 
     def _crear_playlist_(self, nombre):
         headers = {'Authorization': 'Bearer {0}'.format(self.session['yt_token']),
-                       'Accept': 'application/json',
-                       'Content-Type': 'application/json'}
+                   'Accept': 'application/json',
+                   'Content-Type': 'application/json'}
 
         params = {'part': 'snippet'}
         params_encoded = urllib.urlencode(params)
@@ -318,7 +326,7 @@ class YoutubePlaylist(BaseHandler):
         data = {'snippet': {'title': nombre}}
         jsondata = json.dumps(data)
         response = requests.post('https://www.googleapis.com/youtube/v3/playlists?' + params_encoded,
-                                headers=headers, data=jsondata)
+                                 headers=headers, data=jsondata)
         json_respuesta = json.loads(response.content)
         return json_respuesta['id']
 
@@ -337,8 +345,7 @@ class YoutubePlaylist(BaseHandler):
                 }
         jsondata = json.dumps(data)
         response = requests.post('https://www.googleapis.com/youtube/v3/playlistItems?' + params_encoded,
-        headers=headers, data=jsondata)
-
+                                 headers=headers, data=jsondata)
 
 
 app = webapp2.WSGIApplication([
