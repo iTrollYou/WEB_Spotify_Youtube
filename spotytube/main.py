@@ -140,10 +140,13 @@ class LoginAndAuthorizeHandler(BaseHandler):
 
 class SearchSpotify(BaseHandler):
     def get(self):
+
         logging.debug('ENTERING SearchSpotify --->')
         self.spotify_token = self.session['spotify_token']['access_token']
 
         to_search = self.request.get("search")
+        type = self.request.get('typesearch')
+
         # comprobar si es nombre de playlist o url
         # si es url extraer el id
         # result = self.get_tracks_from_playlist(to_search)

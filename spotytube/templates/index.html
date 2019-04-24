@@ -14,11 +14,13 @@
 </head>
 
 <script type="text/javascript">
-    function click_playlist(id){
+    function click_playlist(id) {
         var request = new XMLHttpRequest(); //Objeto AJAX para realizar la petición
         request.open("GET", "/GetSongs?id=" + id, true); // preparar petición HTTP
         request.send(null); // Enviar petición HTTP
     }
+
+
 </script>
 
 <body>
@@ -34,8 +36,16 @@
             <div class="box">
                 <div class="container-1">
                     <span class="icon"><i class="fas fa-search"></i></span>
-                    <form action="/SearchSpotify" method="get">
+                    <form name='busqueda' action="/SearchSpotify" method="get">
                         <input type="search" name="search" id="search" placeholder="Search..."/>
+                        <div class="row">
+                            <div class="column2">
+                                <input type="radio" name="typesearch" value="url"> Url<br>
+                            </div>
+                            <div class="column2">
+                                <input type="radio" name="typesearch" value="name" checked> Name<br>
+                            </div>
+                        </div>
                     </form>
                 </div>
             </div>
@@ -46,19 +56,19 @@
 
 
         {% if playlist_names %}
-            {% for content in playlist_names %}
-                <div class="column">
-                    <div class="card">
-                        <img class="image" src={{content[1]}} alt={{content[0]}} style="width: 300px;height:300px;">
-                        <div class="container">
-                            <h3>{{content[0]}}</h3>
-                            <p>
-                                <button class="button" id={{content[2]}} onClick="click_playlist(this.id)">Choose</button>
-                            </p>
-                        </div>
-                    </div>
+        {% for content in playlist_names %}
+        <div class="column">
+            <div class="card">
+                <img class="image" src={{content[1]}} alt={{content[0]}} style="width: 300px;height:300px;">
+                <div class="container">
+                    <h3>{{content[0]}}</h3>
+                    <p>
+                        <button class="button" id={{content[2]}} onClick="click_playlist(this.id)">Choose</button>
+                    </p>
                 </div>
-            {% endfor %}
+            </div>
+        </div>
+        {% endfor %}
         {% endif %}
 
     </div>
