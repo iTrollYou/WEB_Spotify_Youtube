@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+
+    <title>SpotyTube</title>
+
+    <link rel="stylesheet" href="/css/style.css" type="text/css"/>
+    <script src='https://cdnjs.cloudflare.com/ajax/libs/jquery/2.2.2/jquery.min.js'></script>
+
+    <link href='https://fonts.googleapis.com/css?family=Raleway' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.1/css/all.css"
+          integrity="sha384-50oBUHEmvpQ+1lW4y57PTFmhCaXp0ML5d60M1M7uh3+nqUivzIebhndOJK28anvf" crossorigin="anonymous">
+</head>
+
+<script type="text/javascript">
+    function click_playlist(id){
+        var request = new XMLHttpRequest(); //Objeto AJAX para realizar la petición
+        request.open("GET", "/GetSongs?id=" + id, true); // preparar petición HTTP
+        request.send(null); // Enviar petición HTTP
+    }
+</script>
+
+<body>
+
+<div class="wrapper">
+
+    <div class="st-wrapper">
+
+        <h1 class='st-tittle'><img class="image" src="/img/spotytube.png"></h1>
+        <div class='pre-awesome-line'></div>
+
+        <section class="content wrapper">
+            <div class="box">
+                <div class="container-1">
+
+
+                </div>
+            </div>
+
+        </section>
+
+
+
+    </div>
+</div>
+</body>
+</html>

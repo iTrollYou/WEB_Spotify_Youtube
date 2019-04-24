@@ -19,6 +19,8 @@
         request.open("GET", "/SearchSpotify?id=" + id, true); // preparar petición HTTP
         request.send(null); // Enviar petición HTTP
     }
+
+
 </script>
 
 <body>
@@ -34,8 +36,16 @@
             <div class="box">
                 <div class="container-1">
                     <span class="icon"><i class="fas fa-search"></i></span>
-                    <form action="/SearchSpotify" method="get">
+                    <form name='busqueda' action="/SearchSpotify" method="get">
                         <input type="search" name="search" id="search" placeholder="Search..."/>
+                        <div class="row">
+                            <div class="column2">
+                                <input type="radio" name="typesearch" value="url"> Url<br>
+                            </div>
+                            <div class="column2">
+                                <input type="radio" name="typesearch" value="name" checked> Name<br>
+                            </div>
+                        </div>
                     </form>
                 </div>
             </div>
