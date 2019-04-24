@@ -21,7 +21,6 @@ import requests
 import requests_toolbelt.adapters.appengine
 
 # Use the App Engine Requests adapter. This makes sure that Requests uses URLFetch.
-from spotytube_utils import metadata
 
 requests_toolbelt.adapters.appengine.monkeypatch()
 
@@ -147,22 +146,19 @@ class SearchSpotify(BaseHandler):
         self.spotify_token = self.session['spotify_token']['access_token']
         playlist_id = self.request.get("id")
 
-        type = self.request.get('typesearch')
         # comprobar si es nombre de playlist o url
+        type = self.request.get('typesearch')
+
         if playlist_id is "":
             to_search = self.request.get("search")
-            result = self._search_playlists(to_search)
+            list_playlist = self._search_playlists(to_search)
 
-            # pprint.pprint(result)
-            self._print_images(result)
+            self._print_playlists(list_playlist)
             self.redirect('/')
         else:
-            self.metadata = metadata({})
-            # si es url extraer el id
+
             playlist_tracks = self.get_tracks_from_playlist(playlist_id)
-            for track in playlist_tracks:
-                track_formatted = metadata(track)
-                print track_formatted.track
+            self._print_tracks(playlist_tracks)
 
     def _request(self, url, data):
 
@@ -199,16 +195,12 @@ class SearchSpotify(BaseHandler):
                          market=market)
 
     def get_tracks_from_playlist(self, playlist_url):
-        results = self.playlist_tracks(playlist_url, fields="items")
-        items = results['items']
-        return items
-        for x in range(0, len(items)):
-            pprint.pprint(items[x]['track']['duration_ms'])
-            pprint.pprint(items[x]['track']['name'])
 
-    def _print_images(self, result):
-        if result['playlists']['next'] is not None:
-            items = result['playlists']['items']
+        return self.playlist_tracks(playlist_url, fields="items")['items']
+
+    def _print_playlists(self, list_playlist):
+        if list_playlist['playlists']['next'] is not None:
+            items = list_playlist['playlists']['items']
             self.session['playlist_names'] = []
 
             for x in range(0, len(items), 1):
@@ -218,6 +210,47 @@ class SearchSpotify(BaseHandler):
                 array.append(items[x]['id'])
 
                 self.session['playlist_names'].append(array)
+
+    def _print_tracks(self, playlist_tracks):
+        """
+        Posiciones de la array:
+        0 -> nombre canción
+        1 -> nombre artista
+        2 -> nombres de artistas
+        3 -> duración(ms)
+        4 -> url imagen
+        5 -> url preview song
+        :param playlist_tracks: Lista de canciones de la playlist
+        :return: 
+        """""
+
+        self.session['tracks_names'] = []
+        for track in playlist_tracks:
+            current_track = track['track']
+            # pprint.pprint(current_track)
+            array = []
+            array.append(current_track['name'])
+
+            track_artists = []
+            for artist in current_track['artists']:
+                track_artists.append(artist['name'])
+            featured_artists = ';'.join(track_artists)
+            artist = featured_artists.split(';')[0]
+            array.append(artist)
+
+            album_artists = []
+            for artist in current_track['album']['artists']:
+                album_artists.append(artist['name'])
+            array.append(album_artists)
+
+            array.append(current_track['duration_ms'])
+            array.append(current_track['album']['images'][0]['url'])
+            array.append(current_track['preview_url'])
+
+            self.session['tracks_names'].append(array)
+
+        query = '{0} - {1}'.format(self.session.get('tracks_names')[0][1], self.session.get('tracks_names')[0][0])
+        # pprint.pprint(str(query))
 
     def extract_spotify_id(self, raw_string):
         # print raw_string
