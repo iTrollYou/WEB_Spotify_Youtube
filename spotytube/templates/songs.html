@@ -22,7 +22,7 @@
 </script>
 
 <body>
-
+{% extends “index.html” %}
 <div class="wrapper">
 
     <div class="st-wrapper">
@@ -44,21 +44,6 @@
             </div>
         </section>
 
-        {% if playlist_names %}
-        {% for content in playlist_names %}
-        <div class="column">
-            <div class="card">
-                <img class="image" src={{content[1]}} alt={{content[0]}} style="width: 300px;height:300px;">
-                <div class="container">
-                    <h3>{{content[0]}}</h3>
-                    <p>
-                        <button class="button" id={{content[2]}} onClick="click_playlist(this.id)">Choose</button>
-                    </p>
-                </div>
-            </div>
-        </div>
-        {% endfor %}
-        {% endif %}
 
     </div>
 </div>

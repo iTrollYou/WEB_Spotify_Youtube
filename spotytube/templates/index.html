@@ -18,6 +18,7 @@
         var request = new XMLHttpRequest(); //Objeto AJAX para realizar la petición
         request.open("GET", "/SearchSpotify?id=" + id, true); // preparar petición HTTP
         request.send(null); // Enviar petición HTTP
+        window.location.href = 'http://localhost:8080/templates/songs.html';
     }
 
 

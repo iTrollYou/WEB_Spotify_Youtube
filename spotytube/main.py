@@ -55,10 +55,10 @@ class BaseHandler(webapp2.RequestHandler):
         template = JINJA_ENVIRONMENT.get_template('index.html')
 
         template_playlist_names = self.session.get('playlist_names')
+        template_playlist_songs = self.session.get('tracks_names')
 
-        template_playlist_images = self.session.get('playlist_images')
-        data = {'playlist_images': template_playlist_images,
-                'playlist_names': template_playlist_names}
+        data = {'playlist_names': template_playlist_names,
+                'tracks_names': template_playlist_songs}
         # pprint.pprint(template_playlist_names)
         # pprint.pprint(template_playlist_images)
 
@@ -157,6 +157,7 @@ class SearchSpotify(BaseHandler):
             self.redirect('/')
         else:
 
+
             playlist_tracks = self.get_tracks_from_playlist(playlist_id)
             self._print_tracks(playlist_tracks)
 
@@ -249,7 +250,7 @@ class SearchSpotify(BaseHandler):
 
             self.session['tracks_names'].append(array)
 
-        query = '{0} - {1}'.format(self.session.get('tracks_names')[0][1], self.session.get('tracks_names')[0][0])
+        #query = '{0} - {1}'.format(self.session.get('tracks_names')[0][1], self.session.get('tracks_names')[0][0])
         # pprint.pprint(str(query))
 
     def extract_spotify_id(self, raw_string):
