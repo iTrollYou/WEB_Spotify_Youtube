@@ -14,66 +14,10 @@
 </head>
 
 <script type="text/javascript">
-    function myScript() {
-        var html = '';
-        //var aux = 'image';
-        for (var i = 1; i < 10; i++) {
-            //aux += i;
-            var image = '';
-            var text = '';
-            switch (i) {
-                case 1:
-                    image = "{{image1}}";
-                    text = "{{imageText1}}";
-                    break;
-                case 2:
-                    image = "{{image2}}";
-                    text = "{{imageText2}}";
-                    break;
-                case 3:
-                    image = "{{image3}}";
-                    text = "{{imageText3}}";
-                    break;
-                case 4:
-                    image = "{{image4}}";
-                    text = "{{imageText4}}";
-                    break;
-                case 5:
-                    image = "{{image5}}";
-                    text = "{{imageText5}}";
-                    break;
-                case 6:
-                    image = "{{image6}}";
-                    text = "{{imageText6}}";
-                    break;
-                case 7:
-                    image = "{{image7}}";
-                    text = "{{imageText7}}";
-                    break;
-                case 8:
-                    image = "{{image8}}";
-                    text = "{{imageText8}}";
-                    break;
-                case 9:
-                    image = "{{image9}}";
-                    text = "{{imageText9}}";
-                    break;
-                default:
-            }
-            html += "<div class=\"column\">\n" +
-                "                    <div class=\"card\">\n" +
-                "                        <img class=\"image\" src=" + aux + " alt=" + text + " style=\"width: 300px;height:300px;\">\n" +
-                "                        <div class=\"overlay\">My Name is John</div>\n" +
-                "                        <div class=\"container\">\n" +
-                "                            <h3>" + text + "</h3>\n" +
-                "                            <p>\n" +
-                "                                <button class=\"button\">Choose</button>\n" +
-                "                            </p>\n" +
-                "                        </div>\n" +
-                "                    </div>\n" +
-                "                </div>"
-        }
-        document.getElementsByClassName("row")[0].innerHTML = html;
+    function click_playlist(id){
+        var request = new XMLHttpRequest(); //Objeto AJAX para realizar la petición
+        request.open("GET", "/GetSongs?id=" + id, true); // preparar petición HTTP
+        request.send(null); // Enviar petición HTTP
     }
 </script>
 
@@ -86,9 +30,6 @@
         <h1 class='st-tittle'><img class="image" src="/img/spotytube.png"></h1>
         <div class='pre-awesome-line'></div>
 
-        {% for names in playlist_images %}
-        <li>{{names}}</li>
-        {% endfor %}
         <section class="content wrapper">
             <div class="box">
                 <div class="container-1">
@@ -101,8 +42,25 @@
 
             <div class="row">
             </div>
-
         </section>
+
+
+        {% if playlist_names %}
+            {% for content in playlist_names %}
+                <div class="column">
+                    <div class="card">
+                        <img class="image" src={{content[1]}} alt={{content[0]}} style="width: 300px;height:300px;">
+                        <div class="container">
+                            <h3>{{content[0]}}</h3>
+                            <p>
+                                <button class="button" id={{content[2]}} onClick="click_playlist(this.id)">Choose</button>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        {% endif %}
+
     </div>
 </div>
 </body>

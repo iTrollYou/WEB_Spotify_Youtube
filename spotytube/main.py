@@ -200,11 +200,14 @@ class SearchSpotify(BaseHandler):
         if result['playlists']['next'] is not None:
             items = result['playlists']['items']
             self.session['playlist_names'] = []
-            self.session['playlist_images'] = []
-            # pprint.pprint(items)
+
             for x in range(0, len(items), 1):
-                self.session['playlist_names'].append(items[x]['name'])
-                self.session['playlist_images'].append(items[x]['images'][0]['url'])
+                array = []
+                array.append(items[x]['name'])
+                array.append(items[x]['images'][0]['url'])
+                array.append(items[x]['id'])
+
+                self.session['playlist_names'].append(array)
 
     def extract_spotify_id(self, raw_string):
         # print raw_string
@@ -221,6 +224,10 @@ class SearchSpotify(BaseHandler):
 
         return spotify_id
 
+class ShowSongsSpotify(BaseHandler):
+    def get(self):
+        id = self.request.get('id')
+        print id
 
 class LoginAndAuthorizeGoogleHandler(BaseHandler):
 
@@ -273,6 +280,7 @@ class OauthCallBackHandler(BaseHandler):
 
         self.session['yt_token'] = access_token
         self.redirect('/')
+
 
 
 class YoutubePlaylist(BaseHandler):
@@ -329,7 +337,8 @@ class YoutubePlaylist(BaseHandler):
                 }
         jsondata = json.dumps(data)
         response = requests.post('https://www.googleapis.com/youtube/v3/playlistItems?' + params_encoded,
-headers=headers, data=jsondata)
+        headers=headers, data=jsondata)
+
 
 
 app = webapp2.WSGIApplication([
@@ -338,6 +347,7 @@ app = webapp2.WSGIApplication([
     ('/LoginGoogle', LoginAndAuthorizeGoogleHandler),
     ('/oauth2callback', OauthCallBackHandler),
     ('/SearchSpotify', SearchSpotify),
-    ('/Playlist', YoutubePlaylist)
+    ('/Playlist', YoutubePlaylist),
+    ('/GetSongs', ShowSongsSpotify)
 
 ], config=config, debug=True)
