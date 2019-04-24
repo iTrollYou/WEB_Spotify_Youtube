@@ -14,80 +14,70 @@
 </head>
 
 <script type="text/javascript">
-
-    function createBody() {
-
-
-        create()
-
-        function create() {
-            alert(Global)
-            var html = '';
-            for (var i = 1; i < 10; i++) {
-
-                var image = '';
-                var text = '';
-                switch (i) {
-                    case 1:
-                        image = "{{image1}}";
-                        text = "{{imageText1}}";
-                        break;
-                    case 2:
-                        image = "{{image2}}";
-                        text = "{{imageText2}}";
-                        break;
-                    case 3:
-                        image = "{{image3}}";
-                        text = "{{imageText3}}";
-                        break;
-                    case 4:
-                        image = "{{image4}}";
-                        text = "{{imageText4}}";
-                        break;
-                    case 5:
-                        image = "{{image5}}";
-                        text = "{{imageText5}}";
-                        break;
-                    case 6:
-                        image = "{{image6}}";
-                        text = "{{imageText6}}";
-                        break;
-                    case 7:
-                        image = "{{image7}}";
-                        text = "{{imageText7}}";
-                        break;
-                    case 8:
-                        image = "{{image8}}";
-                        text = "{{imageText8}}";
-                        break;
-                    case 9:
-                        image = "{{image9}}";
-                        text = "{{imageText9}}";
-                        break;
-                    default:
-
-                }
-
-                html += "<div class=\"column\">\n" +
-                    "                    <div class=\"card\">\n" +
-                    "                        <img class=\"image\" src=" + image + " alt=" + text + " style=\"width: 300px;height:300px;\">\n" +
-                    "                        <div class=\"container\">\n" +
-                    "                            <h3>" + text + "</h3>\n" +
-                    "                            <p>\n" +
-                    "                                <button class=\"button\">Choose</button>\n" +
-                    "                            </p>\n" +
-                    "                        </div>\n" +
-                    "                    </div>\n" +
-                    "                </div>";
+    function myScript() {
+        var html = '';
+        //var aux = 'image';
+        for (var i = 1; i < 10; i++) {
+            //aux += i;
+            var image = '';
+            var text = '';
+            switch (i) {
+                case 1:
+                    image = "{{image1}}";
+                    text = "{{imageText1}}";
+                    break;
+                case 2:
+                    image = "{{image2}}";
+                    text = "{{imageText2}}";
+                    break;
+                case 3:
+                    image = "{{image3}}";
+                    text = "{{imageText3}}";
+                    break;
+                case 4:
+                    image = "{{image4}}";
+                    text = "{{imageText4}}";
+                    break;
+                case 5:
+                    image = "{{image5}}";
+                    text = "{{imageText5}}";
+                    break;
+                case 6:
+                    image = "{{image6}}";
+                    text = "{{imageText6}}";
+                    break;
+                case 7:
+                    image = "{{image7}}";
+                    text = "{{imageText7}}";
+                    break;
+                case 8:
+                    image = "{{image8}}";
+                    text = "{{imageText8}}";
+                    break;
+                case 9:
+                    image = "{{image9}}";
+                    text = "{{imageText9}}";
+                    break;
+                default:
             }
-
-            document.getElementsByClassName("row")[0].innerHTML = html;
+            html += "<div class=\"column\">\n" +
+                "                    <div class=\"card\">\n" +
+                "                        <img class=\"image\" src=" + aux + " alt=" + text + " style=\"width: 300px;height:300px;\">\n" +
+                "                        <div class=\"overlay\">My Name is John</div>\n" +
+                "                        <div class=\"container\">\n" +
+                "                            <h3>" + text + "</h3>\n" +
+                "                            <p>\n" +
+                "                                <button class=\"button\">Choose</button>\n" +
+                "                            </p>\n" +
+                "                        </div>\n" +
+                "                    </div>\n" +
+                "                </div>"
         }
+        document.getElementsByClassName("row")[0].innerHTML = html;
     }
-
 </script>
 
-<body onload="createBody(false)">
+<body>
 
 <div class="wrapper">
 
@@ -96,28 +86,24 @@
         <h1 class='st-tittle'><img class="image" src="/img/spotytube.png"></h1>
         <div class='pre-awesome-line'></div>
 
-
+        {% for names in playlist_images %}
+        <li>{{names}}</li>
+        {% endfor %}
         <section class="content wrapper">
-
             <div class="box">
                 <div class="container-1">
                     <span class="icon"><i class="fas fa-search"></i></span>
-                    <form class="searchForm" action="/SearchSpotify" method="get" onsubmit="createBody(true)">
+                    <form action="/SearchSpotify" method="get">
                         <input type="search" name="search" id="search" placeholder="Search..."/>
-                        <input type="submit" value="Submit"/>
                     </form>
                 </div>
             </div>
 
-
             <div class="row">
-
             </div>
-
 
         </section>
     </div>
 </div>
 </body>
 </html>
-

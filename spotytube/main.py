@@ -10,7 +10,6 @@ import os
 import base64
 import json
 import pprint
-import re
 
 import urllib
 
@@ -44,6 +43,7 @@ JINJA_ENVIRONMENT = jinja2.Environment(
 class BaseHandler(webapp2.RequestHandler):
     def dispatch(self):
         # Get a session store for this request.
+
         self.session_store = sessions.get_store(request=self.request)
         try:
             # Dispatch the request.
@@ -51,31 +51,17 @@ class BaseHandler(webapp2.RequestHandler):
         finally:
             # Save all sessions.
             self.session_store.save_sessions(self.response)
-
-        template_values = {'image1': self.session.get('image1'),
-                           'image2': self.session.get('image2'),
-                           'image3': self.session.get('image3'),
-                           'image4': self.session.get('image4'),
-                           'image5': self.session.get('image5'),
-                           'image6': self.session.get('image6'),
-                           'image7': self.session.get('image7'),
-                           'image8': self.session.get('image8'),
-                           'image9': self.session.get('image9'),
-                           'imageText1': self.session.get('imageText1'),
-                           'imageText2': self.session.get('imageText2'),
-                           'imageText3': self.session.get('imageText3'),
-                           'imageText4': self.session.get('imageText4'),
-                           'imageText5': self.session.get('imageText5'),
-                           'imageText6': self.session.get('imageText6'),
-                           'imageText7': self.session.get('imageText7'),
-                           'imageText8': self.session.get('imageText8'),
-                           'imageText9': self.session.get('imageText9'),
-
-                           }
-        # pprint.pprint(template_values)
-
         template = JINJA_ENVIRONMENT.get_template('index.html')
-        self.response.write(template.render(template_values))
+
+        template_playlist_names = self.session.get('playlist_names')
+
+        template_playlist_images = self.session.get('playlist_images')
+        data = {'playlist_images': template_playlist_images,
+                'playlist_names': template_playlist_names}
+        # pprint.pprint(template_playlist_names)
+        # pprint.pprint(template_playlist_images)
+
+        self.response.write(template.render(data))
 
     @webapp2.cached_property
     def session(self):
@@ -213,12 +199,12 @@ class SearchSpotify(BaseHandler):
     def _print_images(self, result):
         if result['playlists']['next'] is not None:
             items = result['playlists']['items']
+            self.session['playlist_names'] = []
+            self.session['playlist_images'] = []
             # pprint.pprint(items)
             for x in range(0, len(items), 1):
-                image = 'image' + str(x + 1)
-                imageText = 'imageText' + str(x + 1)
-                self.session[imageText] = items[x]['name']
-                self.session[image] = items[x]['images'][0]['url']
+                self.session['playlist_names'].append(items[x]['name'])
+                self.session['playlist_images'].append(items[x]['images'][0]['url'])
 
     def extract_spotify_id(self, raw_string):
         # print raw_string
