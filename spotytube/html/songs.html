@@ -14,7 +14,7 @@
 </head>
 
 <script type="text/javascript">
-    function click_playlist(id){
+    function click_playlist(id) {
         var request = new XMLHttpRequest(); //Objeto AJAX para realizar la petición
         request.open("GET", "/GetSongs?id=" + id, true); // preparar petición HTTP
         request.send(null); // Enviar petición HTTP
@@ -31,15 +31,18 @@
         <div class='pre-awesome-line'></div>
 
         <section class="content wrapper">
-            <div class="box">
-                <div class="container-1">
-
-
+            <div class="rectangle">
+                <div class="row">
+                    <div class="columnImage">
+                        <img class="imageSongs" src="/img/spotytube.jpg">
+                    </div>
+                    <div class="columnSongs">
+                        <h2 class="nameSong">Nombre cancion</h2>
+                        <h3 class="artistSong">Artistas</h3>
+                    </div>
                 </div>
             </div>
-
         </section>
-
 
 
     </div>

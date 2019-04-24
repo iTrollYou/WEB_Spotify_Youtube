@@ -125,11 +125,13 @@ body {
 }
 
 /* Two columns side by side */
-.column2 {
+.columnRadio {
     float: left;
     width: 50%;
     margin-top: 16px;
 }
+
+
 
 /* Display the columns below each other instead of side by side on small screens */
 @media screen and (max-width: 650px) {
@@ -184,3 +186,56 @@ body {
     height: auto;
 }
 
+
+/* Show songs */
+.rectangle {
+    /*background-color: #555;*/
+    width: 80%;
+    height: 120px;
+    background: #2b303b;
+    border: none;
+    color: #63717f;
+    -webkit-border-radius: 5px;
+    -moz-border-radius: 5px;
+    border-radius: 5px;
+    margin-top: 16px;
+    margin-left: 10%;
+}
+
+.imageSongs {
+    max-width: 100%;
+    width: 120px;
+    height: 120px;
+}
+
+.nameSong {
+    font-family: 'Raleway';
+    color: #ffffff;
+    font-size: 20px;
+    text-align: left;
+    margin-top: 42px;
+    margin-bottom: 1%;
+}
+
+.artistSong {
+    font-family: 'Raleway';
+    color: #737374;
+    font-size: 16px;
+    text-align: left;
+    margin-top: 1%;
+    margin-bottom: 13%;
+}
+
+/*Two columns side by side */
+.columnImage {
+    float: left;
+    width: 30%;
+    text-align: left;
+}
+
+.columnSongs {
+    float: left;
+    width: 30%;
+    text-align: left;
+
+}
