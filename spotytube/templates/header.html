@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+
+    <title>SpotyTube</title>
+
+    <link rel="stylesheet" href="/css/style.css" type="text/css"/>
+    <script src='https://cdnjs.cloudflare.com/ajax/libs/jquery/2.2.2/jquery.min.js'></script>
+
+    <link href='https://fonts.googleapis.com/css?family=Raleway' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.1/css/all.css"
+          integrity="sha384-50oBUHEmvpQ+1lW4y57PTFmhCaXp0ML5d60M1M7uh3+nqUivzIebhndOJK28anvf" crossorigin="anonymous">
+</head>
+
+
+<body>
+    {{ template_selector }}
+    {% if template_selector == 1 %}
+    {% include 'songs.html' %}
+    {% endif %}
+
+    {% if template_selector == 0 %}
+    {% include 'index.html' %}
+    {% endif %}
+
+
+</body>
+</html>

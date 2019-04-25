@@ -44,25 +44,33 @@ JINJA_ENVIRONMENT = jinja2.Environment(
 class BaseHandler(webapp2.RequestHandler):
     def dispatch(self):
         # Get a session store for this request.
-
         self.session_store = sessions.get_store(request=self.request)
+
+
         try:
             # Dispatch the request.
             webapp2.RequestHandler.dispatch(self)
         finally:
             # Save all sessions.
             self.session_store.save_sessions(self.response)
-        template = JINJA_ENVIRONMENT.get_template('index.html')
+
+        template = JINJA_ENVIRONMENT.get_template('header.html')
 
         template_playlist_names = self.session.get('playlist_names')
         template_playlist_songs = self.session.get('tracks_names')
+        template_playlist_choose = self.session.get('template_selector')
+        print template_playlist_choose
+
 
         data = {'playlist_names': template_playlist_names,
-                'tracks_names': template_playlist_songs}
+                'tracks_names': template_playlist_songs,
+                'template_selector': template_playlist_choose}
+
         # pprint.pprint(template_playlist_names)
         # pprint.pprint(template_playlist_images)
 
         self.response.write(template.render(data))
+        print data
 
     @webapp2.cached_property
     def session(self):
@@ -76,6 +84,9 @@ config = {'webapp2_extras.sessions': {'secret_key': 'my-super-secret-key'}}
 class MainHandler(BaseHandler):
 
     def get(self):
+        # index.html
+        self.session['template_selector'] = 0
+
         logging.debug('ENTERING MainHandler --->')
 
         spotify_token = self.session.get('spotify_token')
@@ -156,8 +167,8 @@ class SearchSpotify(BaseHandler):
             self._print_playlists(list_playlist)
             self.redirect('/')
         else:
-
-
+            # songs.html
+            self.session['template_selector'] = 1
             playlist_tracks = self.get_tracks_from_playlist(playlist_id)
             self._print_tracks(playlist_tracks)
 

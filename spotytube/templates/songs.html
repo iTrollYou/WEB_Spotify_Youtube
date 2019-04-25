@@ -13,16 +13,7 @@
           integrity="sha384-50oBUHEmvpQ+1lW4y57PTFmhCaXp0ML5d60M1M7uh3+nqUivzIebhndOJK28anvf" crossorigin="anonymous">
 </head>
 
-<script type="text/javascript">
-    function click_playlist(id) {
-        var request = new XMLHttpRequest(); //Objeto AJAX para realizar la petición
-        request.open("GET", "/GetSongs?id=" + id, true); // preparar petición HTTP
-        request.send(null); // Enviar petición HTTP
-    }
-</script>
-
 <body>
-{% extends “index.html” %}
 <div class="wrapper">
 
     <div class="st-wrapper">
